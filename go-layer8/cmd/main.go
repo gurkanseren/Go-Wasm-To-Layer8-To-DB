@@ -4,16 +4,14 @@ import (
 	"log"
 
 	"github.com/globe-and-citizen/Go-Wasm-To-Layer8-To-DB/go-layer8/config"
-	"github.com/globe-and-citizen/Go-Wasm-To-Layer8-To-DB/go-layer8/internal/rest_server"
+	http "github.com/globe-and-citizen/Go-Wasm-To-Layer8-To-DB/go-layer8/internal/httpServer"
 )
 
 func main() {
 	// Load configuration
 	conf := config.LoadConfig()
-
 	// Create new server instance
-	server := rest_server.NewServer(conf)
-
+	server := http.NewServer(conf)
 	// Start the server
 	log.Printf("Starting server on port %d...", conf.RESTPort)
 	err := server.Serve()
