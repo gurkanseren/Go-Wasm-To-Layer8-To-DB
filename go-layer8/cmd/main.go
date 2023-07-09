@@ -1,21 +1,21 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"net/http"
 
-	"github.com/globe-and-citizen/Go-Wasm-To-Layer8-To-DB/go-layer8/config"
-	http "github.com/globe-and-citizen/Go-Wasm-To-Layer8-To-DB/go-layer8/internal/httpServer"
+	router "github.com/globe-and-citizen/Go-Wasm-To-Layer8-To-DB/go-layer8/router"
 )
 
 func main() {
-	// Load configuration
-	conf := config.LoadConfig()
-	// Create new server instance
-	server := http.NewServer(conf)
+	serverPort := 8080
+	// Register the routes
+	router.RegisterRoutes()
 	// Start the server
-	log.Printf("Starting server on port %d...", conf.RESTPort)
-	err := server.Serve()
+	fmt.Printf("Starting server on port %v\n", serverPort)
+	err := http.ListenAndServe(fmt.Sprintf(":%d", serverPort), nil)
 	if err != nil {
-		log.Fatalf("Server error: %v", err)
+		log.Fatal(err)
 	}
 }
