@@ -63,7 +63,7 @@ func RegisterUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // LoginPrecheckHandler handles login precheck requests and get the salt of the user from the database using the username from the request URL
-func loginPrecheckHandler(w http.ResponseWriter, r *http.Request) {
+func LoginPrecheckHandler(w http.ResponseWriter, r *http.Request) {
 	// Get username from body
 	var req models.LoginPrecheckDTO
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -110,7 +110,7 @@ func loginPrecheckHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func loginUserHandler(w http.ResponseWriter, r *http.Request) {
+func LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 	// Unmarshal request
 	var req models.LoginUserDTO
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {

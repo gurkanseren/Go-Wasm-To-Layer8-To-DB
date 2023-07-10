@@ -14,7 +14,7 @@ import (
 func connectToServer(this js.Value, args []js.Value) interface{} {
 	go func() {
 		// Make a GET request to the server
-		resp, err := http.Get("http://127.0.0.1:3000/api/v1/ping")
+		resp, err := http.Get("http://127.0.0.1:8080/api/v1/ping")
 		if err != nil {
 			fmt.Printf("GET request failed: %s\n", err)
 			return
@@ -61,7 +61,7 @@ func registerUserHTTP(this js.Value, args []js.Value) interface{} {
 			return
 		}
 		// Make a POST request to the server with the JSON payload
-		resp, err := http.Post("http://127.0.0.1:3000/api/v1/register-user", "application/json", strings.NewReader(string(data)))
+		resp, err := http.Post("http://127.0.0.1:8080/api/v1/register-user", "application/json", strings.NewReader(string(data)))
 		if err != nil {
 			fmt.Printf("POST request failed: %s\n", err)
 			return
@@ -94,7 +94,7 @@ func loginUserHTTP(this js.Value, args []js.Value) interface{} {
 			fmt.Printf("Error marshaling JSON: %s\n", err)
 			return
 		}
-		respPrecheck, err := http.Post("http://127.0.0.1:3000/api/v1/login-precheck", "application/json", strings.NewReader(string(dataPrecheck)))
+		respPrecheck, err := http.Post("http://127.0.0.1:8080/api/v1/login-precheck", "application/json", strings.NewReader(string(dataPrecheck)))
 		if err != nil {
 			fmt.Printf("POST request failed: %s\n", err)
 			return
@@ -129,7 +129,7 @@ func loginUserHTTP(this js.Value, args []js.Value) interface{} {
 			return
 		}
 		// Make a POST request to the server with the JSON payload
-		resp, err := http.Post("http://127.0.0.1:3000/api/v1/login-user", "application/json", strings.NewReader(string(data)))
+		resp, err := http.Post("http://127.0.0.1:8080/api/v1/login-user", "application/json", strings.NewReader(string(data)))
 		if err != nil {
 			fmt.Printf("POST request failed: %s\n", err)
 			return
