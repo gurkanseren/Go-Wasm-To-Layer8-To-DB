@@ -8,5 +8,6 @@ import (
 
 func RegisterRoutes() {
 	// Register the routes
-	http.HandleFunc("/ping", Ctl.Ping)
+	http.HandleFunc("/api/v1/ping", Ctl.Ping)
+	http.HandleFunc("/api/v1/register-user", Ctl.RegisterUserHandler)
 }
