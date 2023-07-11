@@ -35,13 +35,9 @@ func registerUserHTTP(this js.Value, args []js.Value) interface{} {
 		}
 		username := args[0].String()
 		password := args[1].String()
-		// email := args[2].String()
 		// Generate a random salt
 		rmSalt := utils.GenerateRandomSalt(utils.SaltSize)
-		// Hash the salted password using bcrypt
-		// hashedPassword, err := utils.HashPassword(password)
-		// Salt the hashed password using the random salt
-		saltedPassword := utils.SaltPassword(password, []byte(rmSalt))
+		HashedAndSaltedPassword := utils.SaltAndHashPassword(password, rmSalt)
 		// Create a JSON payload with name and age
 		payload := struct {
 			// Email    string `json:"email"`
@@ -51,7 +47,7 @@ func registerUserHTTP(this js.Value, args []js.Value) interface{} {
 		}{
 			// Email:    email,
 			Username: username,
-			Password: saltedPassword,
+			Password: HashedAndSaltedPassword,
 			Salt:     rmSalt,
 		}
 		// Marshal the payload to JSON
@@ -111,16 +107,15 @@ func loginUserHTTP(this js.Value, args []js.Value) interface{} {
 		}
 		// Get the salt from the map
 		salt := result["salt"].(string)
-		fmt.Printf("Salt: %s\n", salt)
 		// Salt the password using the salt from the database
-		saltedPassword := utils.SaltPassword(password, []byte(salt))
+		HashedAndSaltedPassword := utils.SaltAndHashPassword(password, salt)
 		// Create a JSON payload with name and age
 		payloadLogin := struct {
 			Username string `json:"username"`
 			Password string `json:"password"`
 		}{
 			Username: username,
-			Password: saltedPassword,
+			Password: HashedAndSaltedPassword,
 		}
 		// Marshal the payload to JSON
 		data, err := json.Marshal(payloadLogin)
@@ -137,7 +132,7 @@ func loginUserHTTP(this js.Value, args []js.Value) interface{} {
 		defer resp.Body.Close()
 		// Print the response status code and a success message
 		fmt.Printf("Response status code: %d\n", resp.StatusCode)
-		fmt.Printf("Successfully logged in user\n")
+		fmt.Printf("Response body: %s\n", string(utils.ReadResponseBody(resp.Body)))
 	}()
 	return nil
 }

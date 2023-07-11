@@ -20,7 +20,6 @@ func Ping(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-
 // RegisterUserHandler handles user registration requests
 func RegisterUserHandler(w http.ResponseWriter, r *http.Request) {
 	// Unmarshal request
@@ -144,15 +143,6 @@ func LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	// hashedPassword, err := HashPassword(req.Password)
-	// if err != nil {
-	// 	w.WriteHeader(http.StatusInternalServerError)
-	// 	_, err := w.Write([]byte(err.Error()))
-	// 	if err != nil {
-	// 		log.Printf("Error sending response: %v", err)
-	// 	}
-	// 	return
-	// }
 	// Compare the password with the password in the database
 	if user.Password != req.Password {
 		w.WriteHeader(http.StatusUnauthorized)
@@ -163,10 +153,12 @@ func LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Generate JWT token
-	fmt.Println("User password: ", user.Password)
-	fmt.Println("Salted password: ", req.Password)
 	token, _ := generateJWTToken(user.ID)
 	fmt.Println("Token: ", token)
+	_, err := w.Write([]byte("Login successful, Token: " + token))
+	if err != nil {
+		log.Printf("Error sending response: %v", err)
+	}
 	// TODO: Send token to client
 }
 
@@ -175,8 +167,3 @@ func generateJWTToken(userID uint) (string, error) {
 	// Return dummy token for now
 	return "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySUQiOjF9.8Za0Z", nil
 }
-
-// func HashPassword(password string) (string, error) {
-// 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-// 	return string(bytes), err
-// }

@@ -2,12 +2,12 @@ package password
 
 import (
 	"crypto/rand"
-	"crypto/sha512"
+	"crypto/sha1"
 	"encoding/hex"
 	"io"
 	"io/ioutil"
 
-	"golang.org/x/crypto/bcrypt"
+	"github.com/xdg-go/pbkdf2"
 )
 
 // Define salt size
@@ -26,37 +26,13 @@ func GenerateRandomSalt(saltSize int) string {
 	return hex.EncodeToString(salt[:])
 }
 
-// Salt a password using SHA-512 hashing algorithm
-func SaltPassword(password string, salt []byte) string {
-	// Convert password string to byte slice
-	var passwordBytes = []byte(password)
-
-	// Create sha-512 hasher
-	var sha512Hasher = sha512.New()
-
-	// Append salt to password
-	passwordBytes = append(passwordBytes, salt...)
-
-	// Write password bytes to the salted hasher
-	sha512Hasher.Write(passwordBytes)
-
-	// Get the SHA-512 salted password
-	var saltedPasswordBytes = sha512Hasher.Sum(nil)
-
-	// Convert the salted password to a hex string
-	var saltedPasswordHex = hex.EncodeToString(saltedPasswordBytes)
-
-	return saltedPasswordHex
+func SaltAndHashPassword(password string, salt string) string {
+	dk := pbkdf2.Key([]byte(password), []byte(salt), 4096, 32, sha1.New)
+	return hex.EncodeToString(dk[:])
 }
 
-func HashPassword(password string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	return string(bytes), err
-}
-
-func CheckPasswordHash(password, hash string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-	return err == nil
+func CheckPassword(password string, salt string, hash string) bool {
+	return SaltAndHashPassword(password, salt) == hash
 }
 
 func ReadResponseBody(body io.ReadCloser) []byte {
