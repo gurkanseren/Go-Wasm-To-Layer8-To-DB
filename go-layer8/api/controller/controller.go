@@ -2,7 +2,6 @@ package controller
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 
@@ -154,7 +153,6 @@ func LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	// Generate JWT token
 	token, _ := generateJWTToken(user.ID)
-	fmt.Println("Token: ", token)
 	_, err := w.Write([]byte("Login successful, Token: " + token))
 	if err != nil {
 		log.Printf("Error sending response: %v", err)
