@@ -2,13 +2,22 @@ package controller
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/globe-and-citizen/Go-Wasm-To-Layer8-To-DB/go-layer8/config"
 	"github.com/globe-and-citizen/Go-Wasm-To-Layer8-To-DB/go-layer8/models"
 	"github.com/go-playground/validator/v10"
+	"github.com/gorilla/websocket"
 )
+
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool {
+		// Allow all connections for demonstration purposes.
+		return true
+	},
+}
 
 // PingHandler handles ping requests
 func Ping(w http.ResponseWriter, r *http.Request) {
@@ -151,17 +160,43 @@ func LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	// Generate JWT token
-	token, _ := generateJWTToken(user.ID)
-	_, err := w.Write([]byte("Login successful, Token: " + token))
-	if err != nil {
-		log.Printf("Error sending response: %v", err)
-	}
-	// TODO: Send token to client
 }
 
-func generateJWTToken(userID uint) (string, error) {
-	// TODO: Implement JWT token generation
-	// Return dummy token for now
-	return "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySUQiOjF9.8Za0Z", nil
+func WebSocketHandler(w http.ResponseWriter, r *http.Request) {
+	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
+
+	// upgrade this connection to a WebSocket
+	// connection
+	ws, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Println(err)
+	}
+
+	log.Println("Client Connected")
+	err = ws.WriteMessage(1, []byte("Hi Client! [From layer8 server]"))
+	if err != nil {
+		log.Println(err)
+	}
+	// listen indefinitely for new messages coming
+	// through on our WebSocket connection
+	reader(ws)
+}
+
+func reader(conn *websocket.Conn) {
+	for {
+		// read in a message
+		messageType, p, err := conn.ReadMessage()
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		// print out that message for clarity
+		fmt.Println(string(p))
+
+		if err := conn.WriteMessage(messageType, p); err != nil {
+			log.Println(err)
+			return
+		}
+
+	}
 }

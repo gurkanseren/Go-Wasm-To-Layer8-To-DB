@@ -20,6 +20,9 @@ func HandleRequest(w http.ResponseWriter, r *http.Request) {
 	case "/api/v1/login-user":
 		// Handle the "/api/v1/login-user" route
 		Ctl.LoginUserHandler(w, r)
+	case "/ws":
+		// Handle the "/websocket" route
+		Ctl.WebSocketHandler(w, r)
 	default:
 		// Return a 404 Not Found error for unknown routes
 		http.NotFound(w, r)
