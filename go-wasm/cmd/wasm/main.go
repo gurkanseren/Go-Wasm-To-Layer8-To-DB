@@ -3,11 +3,17 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
+	"net/url"
+	"os"
+	"os/signal"
 	"strings"
 	"syscall/js"
+	"time"
 
 	utils "github.com/globe-and-citizen/Go-Wasm-To-Layer8-To-DB/go-wasm/cmd/utils"
+	"github.com/gorilla/websocket"
 )
 
 // Try to connect to the server and do a ping request
@@ -133,6 +139,66 @@ func loginUserHTTP(this js.Value, args []js.Value) interface{} {
 		// Print the response status code and a success message
 		fmt.Printf("Response status code: %d\n", resp.StatusCode)
 		fmt.Printf("Response body: %s\n", string(utils.ReadResponseBody(resp.Body)))
+		utils.UpgradeConnToWebSocket()
+	}()
+	return nil
+}
+
+func connectToWebSocket(this js.Value, args []js.Value) interface{} {
+	go func() {
+		interrupt := make(chan os.Signal, 1)
+		signal.Notify(interrupt, os.Interrupt)
+
+		u := url.URL{Scheme: "ws", Host: "127.0.0.1:8080", Path: "/ws"}
+		log.Printf("Attempting Connection to %s...", u.String())
+
+		c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
+		if err != nil {
+			log.Fatal("Failed to connect to WebSocket:", err)
+		}
+		defer c.Close()
+
+		done := make(chan struct{})
+
+		go func() {
+			defer close(done)
+			for {
+				_, message, err := c.ReadMessage()
+				if err != nil {
+					log.Println("Error while reading message from WebSocket:", err)
+					return
+				}
+				log.Printf("Received message from server: %s\n", message)
+			}
+		}()
+
+		ticker := time.NewTicker(time.Second)
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-done:
+				return
+			case t := <-ticker.C:
+				err := c.WriteMessage(websocket.TextMessage, []byte(fmt.Sprintf("Client message - %s", t.String())))
+				if err != nil {
+					log.Println("Error while writing message to WebSocket:", err)
+					return
+				}
+			case <-interrupt:
+				log.Println("Interrupt signal received, closing WebSocket connection...")
+				err := c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+				if err != nil {
+					log.Println("Error while closing WebSocket:", err)
+					return
+				}
+				select {
+				case <-done:
+				case <-time.After(time.Second):
+				}
+				return
+			}
+		}
 	}()
 	return nil
 }
@@ -145,6 +211,8 @@ func main() {
 	js.Global().Set("registerUser", js.FuncOf(registerUserHTTP))
 	// Register the loginUser function to the global namespace
 	js.Global().Set("loginUser", js.FuncOf(loginUserHTTP))
+	// Register the connectToWebSocket function to the global namespace
+	js.Global().Set("connectToWebSocket", js.FuncOf(connectToWebSocket))
 	// Keep the program running
 	<-make(chan bool)
 }

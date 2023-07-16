@@ -164,21 +164,17 @@ func LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 
 func WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
-
-	// upgrade this connection to a WebSocket
-	// connection
+	// upgrade this connection to a WebSocket connection
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println(err)
 	}
-
 	log.Println("Client Connected")
 	err = ws.WriteMessage(1, []byte("Hi Client! [From layer8 server]"))
 	if err != nil {
 		log.Println(err)
 	}
-	// listen indefinitely for new messages coming
-	// through on our WebSocket connection
+	// listen indefinitely for new messages coming through on our WebSocket connection
 	reader(ws)
 }
 
@@ -197,6 +193,5 @@ func reader(conn *websocket.Conn) {
 			log.Println(err)
 			return
 		}
-
 	}
 }
