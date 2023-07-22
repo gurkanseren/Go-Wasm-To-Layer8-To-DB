@@ -1,23 +1,18 @@
 package controller
 
 import (
+	"context"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/globe-and-citizen/Go-Wasm-To-Layer8-To-DB/go-layer8/config"
 	"github.com/globe-and-citizen/Go-Wasm-To-Layer8-To-DB/go-layer8/models"
 	"github.com/go-playground/validator/v10"
-	"github.com/gorilla/websocket"
+	"nhooyr.io/websocket"
+	"nhooyr.io/websocket/wsjson"
 )
-
-var upgrader = websocket.Upgrader{
-	CheckOrigin: func(r *http.Request) bool {
-		// Allow all connections for demonstration purposes.
-		return true
-	},
-}
 
 // PingHandler handles ping requests
 func Ping(w http.ResponseWriter, r *http.Request) {
@@ -163,35 +158,24 @@ func LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func WebSocketHandler(w http.ResponseWriter, r *http.Request) {
-	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
-	// upgrade this connection to a WebSocket connection
-	ws, err := upgrader.Upgrade(w, r, nil)
+	c, err := websocket.Accept(w, r, nil)
 	if err != nil {
-		log.Println(err)
+		log.Printf("failed to accept websocket connection: %v", err)
+		return
 	}
-	log.Println("Client Connected")
-	err = ws.WriteMessage(1, []byte("Hi Client! [From layer8 server]"))
+	defer c.Close(websocket.StatusInternalError, "the sky is falling")
+
+	ctx, cancel := context.WithTimeout(r.Context(), time.Second*10)
+	defer cancel()
+
+	var v interface{}
+	err = wsjson.Read(ctx, c, &v)
 	if err != nil {
-		log.Println(err)
+		log.Printf("failed to read message: %v", err)
+		return
 	}
-	// listen indefinitely for new messages coming through on our WebSocket connection
-	reader(ws)
-}
 
-func reader(conn *websocket.Conn) {
-	for {
-		// read in a message
-		messageType, p, err := conn.ReadMessage()
-		if err != nil {
-			log.Println(err)
-			return
-		}
-		// print out that message for clarity
-		fmt.Println(string(p))
+	log.Printf("received: %v", v)
 
-		if err := conn.WriteMessage(messageType, p); err != nil {
-			log.Println(err)
-			return
-		}
-	}
+	c.Close(websocket.StatusNormalClosure, "")
 }

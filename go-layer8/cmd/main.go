@@ -4,24 +4,36 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/globe-and-citizen/Go-Wasm-To-Layer8-To-DB/go-layer8/middleware"
 	router "github.com/globe-and-citizen/Go-Wasm-To-Layer8-To-DB/go-layer8/router"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	serverPort := 8080
+	// Load environment variables
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 
-	// Create a new server mux
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", router.HandleRequest)
+	// Get the port to listen on from .env
+	serverPort := os.Getenv("SERVER_PORT")
 
-	// Wrap the server mux with the CORS middleware
-	handler := middleware.Cors(mux)
+	// Set up File Server
+	fs := http.FileServer(http.Dir("./assets"))
 
-	// Start the server
-	fmt.Printf("Starting server on port %v\n", serverPort)
-	err := http.ListenAndServe(fmt.Sprintf(":%d", serverPort), handler)
+	// Set up route for File Server
+	http.Handle("/", fs)
+
+	// Register the routes using the RegisterRoutes() function with logger middleware
+	http.HandleFunc("/api/v1/", middleware.LogRequest(middleware.Cors(router.RegisterRoutes())))
+
+	fmt.Printf("Server listening on localhost:%s\n", serverPort)
+
+	// Start the server on localhost and log any errors
+	err = http.ListenAndServe(fmt.Sprintf(":%s", serverPort), nil)
 	if err != nil {
 		log.Fatal(err)
 	}
