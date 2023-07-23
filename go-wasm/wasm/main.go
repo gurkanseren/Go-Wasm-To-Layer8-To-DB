@@ -142,6 +142,15 @@ func loginUserHTTP(this js.Value, args []js.Value) interface{} {
 		fmt.Printf("User successfully logged in with status code: %d, Upgrading connection to WebSocket...\n", resp.StatusCode)
 		recData := utils.UpgradeConnToWebSocket()
 		log.Printf("Connection upgraded! Received data from WebSocket: %s\n", recData)
+
+		mapData := make(map[string]interface{})
+		err = json.Unmarshal([]byte(recData), &mapData)
+		if err != nil {
+			fmt.Printf("Error unmarshaling JSON: %s\n", err)
+			return
+		}
+		ImgURL := mapData["url"].(string)
+		js.Global().Call("displayImage", ImgURL)
 	}()
 	return nil
 }

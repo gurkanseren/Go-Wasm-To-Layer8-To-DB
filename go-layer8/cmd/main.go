@@ -19,7 +19,7 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 	// Get the port to listen on from .env
-	serverPort := os.Getenv("SERVER_PORT")
+	serverPort := os.Getenv("SERVER_ONE_PORT")
 
 	// Set up File Server
 	fs := http.FileServer(http.Dir("./assets"))

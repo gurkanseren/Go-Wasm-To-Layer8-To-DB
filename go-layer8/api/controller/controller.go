@@ -3,6 +3,7 @@ package controller
 import (
 	"context"
 	"encoding/json"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"time"
@@ -178,7 +179,26 @@ func WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("Received from WASM Module: %v", v)
 
-	err = wsjson.Write(ctx, c, "Connection Test Successful")
+	// Get the picture from another Golang server running on port 9090 and get the image in bytes
+	resp, err := http.Get("http://localhost:9090/image")
+	if err != nil {
+		log.Printf("failed to get image: %v", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	// Convert the response body to a string
+	RespBodyByte, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("failed to read response body: %v", err)
+		return
+	}
+
+	// Convert RespBodyByte to string
+	RespBodyString := string(RespBodyByte)
+
+	// Send the picture to the WASM module
+	err = wsjson.Write(ctx, c, RespBodyString)
 	if err != nil {
 		log.Printf("failed to write message: %v", err)
 		return
