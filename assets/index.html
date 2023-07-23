@@ -1,36 +1,27 @@
 <html>
-
-<head>
+  <head>
     <meta charset="utf-8" />
     <script src="wasm_exec.js"></script>
     <script>
-        const go = new Go();
-        WebAssembly.instantiateStreaming(fetch("module.wasm"), go.importObject).then((result) => {
-            go.run(result.instance);
-        });
+      const go = new Go();
+      WebAssembly.instantiateStreaming(
+        fetch("module.wasm"),
+        go.importObject
+      ).then((result) => {
+        go.run(result.instance);
+      });
+
+      function displayImage(imageURL) {
+        // Get the img element by its id
+        const imageElement = document.getElementById("imageElement");
+        // Set the src attribute of the img element to the received image URL
+        imageElement.src = imageURL;
+      }
     </script>
-</head>
+  </head>
 
-<body>
-    <!-- <script>
-        let socket = new WebSocket("ws://127.0.0.1:8080/ws");
-        console.log("Attempting Connection...");
-
-        socket.onopen = () => {
-            console.log("Successfully Connected");
-            socket.send("Hi From the Client!")
-        };
-
-        socket.onclose = event => {
-            console.log("Socket Closed Connection: ", event);
-            socket.send("Client Closed!")
-        };
-
-        socket.onerror = error => {
-            console.log("Socket Error: ", error);
-        };
-
-    </script> -->
-</body>
-
+  <body>
+    <!-- Add an img element with an id to display the image -->
+    <img id="imageElement" src="" alt="" />
+  </body>
 </html>
