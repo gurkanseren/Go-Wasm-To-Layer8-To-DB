@@ -176,7 +176,13 @@ func WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("received: %v", v)
+	log.Printf("Received from WASM Module: %v", v)
+
+	err = wsjson.Write(ctx, c, "Connection Test Successful")
+	if err != nil {
+		log.Printf("failed to write message: %v", err)
+		return
+	}
 
 	c.Close(websocket.StatusNormalClosure, "")
 }

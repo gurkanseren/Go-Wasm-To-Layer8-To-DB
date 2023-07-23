@@ -9,7 +9,7 @@ import (
 	"nhooyr.io/websocket/wsjson"
 )
 
-func UpgradeConnToWebSocket() string {
+func UpgradeConnToWebSocket() interface{} {
 
 	data := "Connection Test Message"
 
@@ -27,7 +27,15 @@ func UpgradeConnToWebSocket() string {
 		log.Fatal(err)
 	}
 
+	var v interface{}
+	err = wsjson.Read(ctx, c, &v)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// log.Printf("Received from layer8-server: %v", v)
+
 	c.Close(websocket.StatusNormalClosure, "")
 
-	return data
+	return v
 }

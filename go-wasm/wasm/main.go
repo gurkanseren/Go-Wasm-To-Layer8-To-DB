@@ -133,10 +133,15 @@ func loginUserHTTP(this js.Value, args []js.Value) interface{} {
 			return
 		}
 		defer resp.Body.Close()
+
+		if resp.StatusCode != 200 {
+			fmt.Printf("User login failed, Invalid credentials\n")
+			return
+		}
 		// Print the response status code and a success message
 		fmt.Printf("User successfully logged in with status code: %d, Upgrading connection to WebSocket...\n", resp.StatusCode)
 		recData := utils.UpgradeConnToWebSocket()
-		fmt.Printf("Connection upgraded! Received data from WebSocket: %s\n", recData)
+		log.Printf("Connection upgraded! Received data from WebSocket: %s\n", recData)
 	}()
 	return nil
 }

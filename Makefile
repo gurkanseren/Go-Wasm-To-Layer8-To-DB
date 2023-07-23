@@ -11,3 +11,6 @@ run-server:
 
 run:
 	make build-wasm && make build-layer8 && make run-server
+
+serve:
+	cd go-http-server && go run main.go
