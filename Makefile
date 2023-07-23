@@ -9,8 +9,8 @@ build-layer8:
 run-server:
 	./bin/layer8-wasm-server
 
+serve:
+	cd go-http-server/cmd && go run main.go
+
 run:
 	make build-wasm && make build-layer8 && make run-server
-
-serve:
-	cd go-http-server && go run main.go
