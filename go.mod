@@ -3,7 +3,6 @@ module github.com/globe-and-citizen/Go-Wasm-To-Layer8-To-DB
 go 1.20
 
 require (
-	github.com/fatih/color v1.15.0
 	github.com/go-playground/validator/v10 v10.14.1
 	github.com/gorilla/websocket v1.5.0
 	github.com/joho/godotenv v1.5.1
@@ -25,7 +24,6 @@ require (
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/klauspost/compress v1.10.3 // indirect
 	github.com/leodido/go-urn v1.2.4 // indirect
-	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
 	golang.org/x/crypto v0.11.0 // indirect
 	golang.org/x/net v0.10.0 // indirect
