@@ -9,22 +9,25 @@ import (
 	"nhooyr.io/websocket/wsjson"
 )
 
-func UpgradeConnToWebSocket() {
-	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
-		defer cancel()
+func UpgradeConnToWebSocket() string {
 
-		c, _, err := websocket.Dial(ctx, "ws://localhost:8080/ws", nil)
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer c.Close(websocket.StatusInternalError, "the sky is falling")
+	data := "Connection Test Message"
 
-		err = wsjson.Write(ctx, c, "hi")
-		if err != nil {
-			log.Fatal(err)
-		}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
 
-		c.Close(websocket.StatusNormalClosure, "")
-	}()
+	c, _, err := websocket.Dial(ctx, "ws://localhost:8080/ws", nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer c.Close(websocket.StatusInternalError, "error")
+
+	err = wsjson.Write(ctx, c, data)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	c.Close(websocket.StatusNormalClosure, "")
+
+	return data
 }

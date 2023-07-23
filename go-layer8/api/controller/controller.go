@@ -62,6 +62,7 @@ func RegisterUserHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+	w.WriteHeader(http.StatusCreated)
 }
 
 // LoginPrecheckHandler handles login precheck requests and get the salt of the user from the database using the username from the request URL

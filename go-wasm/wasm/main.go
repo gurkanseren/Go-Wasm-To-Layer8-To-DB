@@ -26,8 +26,7 @@ func connectToServer(this js.Value, args []js.Value) interface{} {
 		}
 		defer resp.Body.Close()
 		// Print the response status code and a success message
-		fmt.Printf("Response status code: %d\n", resp.StatusCode)
-		fmt.Printf("Response body: %s\n", string(utils.ReadResponseBody(resp.Body)))
+		fmt.Printf("Server is up and running with status code: %d and message: %s\n", resp.StatusCode, string(utils.ReadResponseBody(resp.Body)))
 	}()
 	return nil
 }
@@ -69,8 +68,7 @@ func registerUserHTTP(this js.Value, args []js.Value) interface{} {
 		}
 		defer resp.Body.Close()
 		// Print the response status code and a success message
-		fmt.Printf("Response status code: %d\n", resp.StatusCode)
-		fmt.Printf("Successfully registered user\n")
+		fmt.Printf("User registered with status code: %d\n", resp.StatusCode)
 	}()
 	return nil
 }
@@ -136,9 +134,9 @@ func loginUserHTTP(this js.Value, args []js.Value) interface{} {
 		}
 		defer resp.Body.Close()
 		// Print the response status code and a success message
-		fmt.Printf("Response status code: %d\n", resp.StatusCode)
-		fmt.Printf("Response body: %s\n", string(utils.ReadResponseBody(resp.Body)))
-		utils.UpgradeConnToWebSocket()
+		fmt.Printf("User successfully logged in with status code: %d, Upgrading connection to WebSocket...\n", resp.StatusCode)
+		recData := utils.UpgradeConnToWebSocket()
+		fmt.Printf("Connection upgraded! Received data from WebSocket: %s\n", recData)
 	}()
 	return nil
 }
@@ -158,6 +156,8 @@ func connectToWebSocket(this js.Value, args []js.Value) interface{} {
 		if err != nil {
 			log.Fatal(err)
 		}
+
+		fmt.Println("Successfully connected to WebSocket and sent data")
 
 		c.Close(websocket.StatusNormalClosure, "")
 	}()
