@@ -23,8 +23,8 @@ func RegisterRoutes() http.HandlerFunc {
 		case "/api/v1/login-user":
 			Ctl.LoginUserHandler(w, r)
 
-		case "ws":
-			Ctl.WebSocketHandler(w, r)
+		// case "/api/v1/ws":
+		// 	Ctl.WebSocketHandler(w, r)
 
 		default:
 			// Return a 404 Not Found error for unknown routes
