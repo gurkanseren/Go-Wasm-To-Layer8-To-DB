@@ -8,9 +8,29 @@ import (
 )
 
 func ServeImage(w http.ResponseWriter, r *http.Request) {
-	// Create the response object containing the image URL
-	imageURLResponse := models.ImageURLResponse{
-		URL: models.ImageURL,
+
+	// Get the image ID from the request parameters
+	imageID := r.URL.Query().Get("id")
+
+	// Create the response object containing the image URL according to the image ID
+	var imageURLResponse models.ImageURLResponse
+	switch imageID {
+	case "1":
+		imageURLResponse = models.ImageURLResponse{
+			URL: models.ImageURLOne,
+		}
+	case "2":
+		imageURLResponse = models.ImageURLResponse{
+			URL: models.ImageURLTwo,
+		}
+	case "3":
+		imageURLResponse = models.ImageURLResponse{
+			URL: models.ImageURLThree,
+		}
+	case "4":
+		imageURLResponse = models.ImageURLResponse{
+			URL: models.ImageURLFour,
+		}
 	}
 
 	// Set the appropriate Content-Type header for JSON response

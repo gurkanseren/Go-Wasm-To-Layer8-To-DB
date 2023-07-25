@@ -170,19 +170,19 @@ func WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), time.Second*10)
 	defer cancel()
 
-	var v interface{}
-	err = wsjson.Read(ctx, c, &v)
+	var choice string
+	err = wsjson.Read(ctx, c, &choice)
 	if err != nil {
 		log.Printf("failed to read message: %v", err)
 		return
 	}
 
-	log.Printf("Received from WASM Module: %v", v)
+	log.Printf("Received from WASM Module: %v", choice)
 
-	// Get the picture from another Golang server running on port 9090 and get the image in bytes
-	resp, err := http.Get("http://localhost:9090/image")
+	// Get the picture from another Golang server running on port 9090 according to the choice
+	resp, err := http.Get("http://localhost:9090/image" + "?id=" + choice)
 	if err != nil {
-		log.Printf("failed to get image: %v", err)
+		log.Printf("failed to get picture: %v", err)
 		return
 	}
 	defer resp.Body.Close()

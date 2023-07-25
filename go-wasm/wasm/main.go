@@ -75,12 +75,13 @@ func registerUserHTTP(this js.Value, args []js.Value) interface{} {
 
 func loginUserHTTP(this js.Value, args []js.Value) interface{} {
 	go func() {
-		if len(args) != 2 {
+		if len(args) != 3 {
 			fmt.Println("Invalid number of arguments passed")
 			return
 		}
 		username := args[0].String()
 		password := args[1].String()
+		choice := args[2].String()
 		// Get the user salt from the database
 		payloadPrecheck := struct {
 			Username string `json:"username"`
@@ -140,7 +141,7 @@ func loginUserHTTP(this js.Value, args []js.Value) interface{} {
 		}
 		// Print the response status code and a success message
 		fmt.Printf("User successfully logged in with status code: %d, Upgrading connection to WebSocket...\n", resp.StatusCode)
-		recData := utils.UpgradeConnToWebSocket()
+		recData := utils.UpgradeConnToWebSocket(choice)
 		log.Printf("Connection upgraded! Received data from WebSocket: %s\n", recData)
 
 		mapData := make(map[string]interface{})

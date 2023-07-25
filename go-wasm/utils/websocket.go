@@ -9,9 +9,7 @@ import (
 	"nhooyr.io/websocket/wsjson"
 )
 
-func UpgradeConnToWebSocket() string {
-
-	data := "Connection Test Message"
+func UpgradeConnToWebSocket(choice string) string {
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
@@ -22,7 +20,7 @@ func UpgradeConnToWebSocket() string {
 	}
 	defer c.Close(websocket.StatusInternalError, "error")
 
-	err = wsjson.Write(ctx, c, data)
+	err = wsjson.Write(ctx, c, choice)
 	if err != nil {
 		log.Fatal(err)
 	}
