@@ -1,27 +1,197 @@
+<!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <script src="wasm_exec.js"></script>
-    <script>
-      const go = new Go();
-      WebAssembly.instantiateStreaming(
-        fetch("module.wasm"),
-        go.importObject
-      ).then((result) => {
+
+<head>
+  <link rel="icon" type="image/x-icon" href="data:image/x-icon;,">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Go WASM to Layer8 to HTTP Server Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #222;
+      color: #fff;
+      margin: 0;
+      padding: 0;
+    }
+
+    .page-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    .form-container {
+      width: 200px;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      background-color: #333;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-container h2 {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    .form-container input,
+    .form-container select,
+    .form-container button {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      background-color: #444;
+      color: #fff;
+    }
+
+    .form-container button {
+      background-color: #007bff;
+      color: #fff;
+      transition: background-color 0.2s ease;
+    }
+
+    .form-container button:hover {
+      background-color: #0056b3;
+    }
+
+    .back-button {
+      margin-top: 10px;
+    }
+  </style>
+  <script src="wasm_exec.js"></script>
+  <script>
+    const go = new Go();
+    WebAssembly.instantiateStreaming(fetch("module.wasm"), go.importObject)
+      .then((result) => {
         go.run(result.instance);
       });
 
-      function displayImage(imageURL) {
-        // Get the img element by its id
-        const imageElement = document.getElementById("imageElement");
-        // Set the src attribute of the img element to the received image URL
-        imageElement.src = imageURL;
-      }
-    </script>
-  </head>
+    function displayImage(imageURL) {
+      const imageElement = document.getElementById("imageElement");
+      imageElement.src = imageURL;
+    }
 
-  <body>
-    <!-- Add an img element with an id to display the image -->
-    <img id="imageElement" src="" alt="" />
-  </body>
+    function showLoginForm() {
+      const loginButton = document.getElementById("loginButton");
+      const registerButton = document.getElementById("registerButton");
+      const loginForm = document.getElementById("loginForm");
+      const backButton = document.getElementById("backButton");
+      const initialButtons = document.getElementById("initialButtons");
+
+      if (loginButton && registerButton && loginForm && backButton) {
+        loginButton.style.display = "none";
+        registerButton.style.display = "none";
+        loginForm.style.display = "block";
+        backButton.style.display = "block";
+        initialButtons.style.display = "none";
+      }
+    }
+
+    function showRegisterForm() {
+      const loginButton = document.getElementById("loginButton");
+      const registerButton = document.getElementById("registerButton");
+      const registerForm = document.getElementById("registerForm");
+      const backButton = document.getElementById("backButton");
+      const initialButtons = document.getElementById("initialButtons");
+
+      if (loginButton && registerButton && registerForm && backButton) {
+        loginButton.style.display = "none";
+        registerButton.style.display = "none";
+        registerForm.style.display = "block";
+        backButton.style.display = "block";
+        initialButtons.style.display = "none";
+      }
+    }
+
+    function goBack() {
+      const loginButton = document.getElementById("loginButton");
+      const registerButton = document.getElementById("registerButton");
+      const loginForm = document.getElementById("loginForm");
+      const registerForm = document.getElementById("registerForm");
+      const backButton = document.getElementById("backButton");
+      const initialButtons = document.getElementById("initialButtons");
+
+      if (loginButton && registerButton && loginForm && registerForm && backButton) {
+        loginButton.style.display = "block";
+        registerButton.style.display = "block";
+        loginForm.style.display = "none";
+        registerForm.style.display = "none";
+        backButton.style.display = "none";
+        initialButtons.style.display = "block";
+      }
+    }
+
+
+    function regUser() {
+      const username = document.getElementById("registerUsername").value;
+      const password = document.getElementById("registerPassword").value;
+      const repeatPassword = document.getElementById("repeatPassword").value;
+
+      if (password !== repeatPassword) {
+        alert("Passwords do not match.");
+        return;
+      }
+
+      // Call your Go function to register the user
+      registerUser(username, password);
+    }
+
+    function logUser() {
+      const username = document.getElementById("loginUsername").value;
+      const password = document.getElementById("loginPassword").value;
+      const choice = document.getElementById("choice").value;
+
+      // Call your Go function to login the user
+      loginUser(username, password, choice);
+    }
+  </script>
+</head>
+
+<body>
+  <h1 style="text-align: center;">Go WASM to Layer8 to HTTP Server Test</h1>
+  <div class="page-content">
+    <!-- Login Form -->
+    <div id="loginForm" class="form-container" style="display: none;">
+      <h2>Login</h2>
+      <div style="display: flex; flex-direction: column; align-items: center;">
+        <input type="text" id="loginUsername" placeholder="Username" />
+        <input type="password" id="loginPassword" placeholder="Password" />
+        <select id="choice">
+          <option value="1">PictureOne</option>
+          <option value="2">PictureTwo</option>
+          <option value="3">PictureThree</option>
+          <option value="4">PictureFour</option>
+        </select>
+      </div>
+      <button onclick="logUser()">Login</button>
+      <button class="back-button" id="backButton" onclick="goBack()">Back</button>
+    </div>
+
+    <!-- Register Form -->
+    <div id="registerForm" class="form-container" style="display: none;">
+      <h2>Register</h2>
+      <div style="display: flex; flex-direction: column; align-items: center;">
+        <input type="text" id="registerUsername" placeholder="Username" />
+        <input type="password" id="registerPassword" placeholder="Password" />
+        <input type="password" id="repeatPassword" placeholder="Repeat Password" />
+      </div>
+      <button onclick="regUser()">Register</button>
+      <button class="back-button" id="backButton" onclick="goBack()">Back</button>
+    </div>
+
+    <!-- Show Login and Register buttons initially -->
+    <div id="initialButtons" class="form-container">
+      <button id="loginButton" onclick="showLoginForm()">Login</button>
+      <button id="registerButton" onclick="showRegisterForm()">Register</button>
+    </div>
+  </div>
+  <!-- Add an img element with an id to display the image -->
+  <img id="imageElement" src="" alt="" />
+</body>
+
 </html>
