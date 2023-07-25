@@ -23,7 +23,7 @@ make run # This will generate the builds for layer8 and wasm and start the singl
 CREATE TABLE IF NOT EXISTS public.users
 (
     id SERIAL PRIMARY KEY NOT NULL,
-    username character varying NOT NULL,
+    username character varying UNIQUE NOT NULL,
     password character varying NOT NULL,
     salt character varying(255)
 );

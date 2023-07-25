@@ -62,6 +62,19 @@
     .back-button {
       margin-top: 10px;
     }
+
+    .centered-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 70vh;
+      /* Adjust this value as needed to control the image size */
+    }
+
+    .centered-image {
+      max-width: 100%;
+      max-height: 100%;
+    }
   </style>
   <script src="wasm_exec.js"></script>
   <script>
@@ -137,15 +150,23 @@
         repeatPasswordError.innerText = "Passwords do not match";
         repeatPasswordError.style.color = "red";
         return;
-      } else {
-        repeatPasswordError.innerText = "User registered"
-        repeatPasswordError.style.color = "green";
       }
 
       // Call your Go function to register the user
       registerUser(username, password);
     }
 
+    function regUserError() {
+      const repeatPasswordError = document.getElementById("repeatPasswordError");
+      repeatPasswordError.innerText = "User already exists";
+      repeatPasswordError.style.color = "red";
+    }
+
+    function regUserSuccess() {
+      const repeatPasswordError = document.getElementById("repeatPasswordError");
+      repeatPasswordError.innerText = "User registered";
+      repeatPasswordError.style.color = "green";
+    }
 
     function logUser() {
       const username = document.getElementById("loginUsername").value;
@@ -153,8 +174,23 @@
       const choice = document.getElementById("choice").value;
 
       // Call your Go function to login the user
-      loginUser(username, password, choice);
+      const loginResult = loginUser(username, password, choice);
     }
+
+    function loginSuccess(imageURL) {
+      const loginMessage = document.getElementById("loginMessage");
+      loginMessage.innerText = "Login successful";
+      loginMessage.style.color = "green";
+      loginMessage.style.display = "block";
+    }
+
+    function loginError() {
+      const loginMessage = document.getElementById("loginMessage");
+      loginMessage.innerText = "Login failed";
+      loginMessage.style.color = "red";
+      loginMessage.style.display = "block";
+    }
+
   </script>
 </head>
 
@@ -174,10 +210,11 @@
           <option value="4">PictureFour</option>
         </select>
       </div>
+      <div id="loginMessage" class="message" style="display: none;"></div>
+      <!-- Success/Error message will be shown here -->
       <button onclick="logUser()">Login</button>
       <button class="back-button" id="backButton" onclick="goBack()">Back</button>
     </div>
-
     <!-- Register Form -->
     <div id="registerForm" class="form-container" style="display: none;">
       <h2>Register</h2>

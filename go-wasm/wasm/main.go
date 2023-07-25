@@ -35,6 +35,7 @@ func registerUserHTTP(this js.Value, args []js.Value) interface{} {
 	go func() {
 		if len(args) != 2 {
 			fmt.Println("Invalid number of arguments passed")
+			js.Global().Call("regUserError")
 			return
 		}
 		username := args[0].String()
@@ -58,17 +59,26 @@ func registerUserHTTP(this js.Value, args []js.Value) interface{} {
 		data, err := json.Marshal(payload)
 		if err != nil {
 			fmt.Printf("Error marshaling JSON: %s\n", err)
+			js.Global().Call("regUserError")
 			return
 		}
 		// Make a POST request to the server with the JSON payload
 		resp, err := http.Post("http://127.0.0.1:8080/api/v1/register-user", "application/json", strings.NewReader(string(data)))
 		if err != nil {
 			fmt.Printf("POST request failed: %s\n", err)
+			js.Global().Call("regUserError")
 			return
 		}
 		defer resp.Body.Close()
+
+		if resp.StatusCode != 201 {
+			fmt.Printf("User registration failed, Username already exists\n")
+			js.Global().Call("regUserError")
+			return
+		}
 		// Print the response status code and a success message
 		fmt.Printf("User registered with status code: %d\n", resp.StatusCode)
+		js.Global().Call("regUserSuccess")
 	}()
 	return nil
 }
@@ -77,6 +87,7 @@ func loginUserHTTP(this js.Value, args []js.Value) interface{} {
 	go func() {
 		if len(args) != 3 {
 			fmt.Println("Invalid number of arguments passed")
+			js.Global().Call("loginError")
 			return
 		}
 		username := args[0].String()
@@ -92,11 +103,13 @@ func loginUserHTTP(this js.Value, args []js.Value) interface{} {
 		dataPrecheck, err := json.Marshal(payloadPrecheck)
 		if err != nil {
 			fmt.Printf("Error marshaling JSON: %s\n", err)
+			js.Global().Call("loginError")
 			return
 		}
 		respPrecheck, err := http.Post("http://127.0.0.1:8080/api/v1/login-precheck", "application/json", strings.NewReader(string(dataPrecheck)))
 		if err != nil {
 			fmt.Printf("POST request failed: %s\n", err)
+			js.Global().Call("loginError")
 			return
 		}
 		defer respPrecheck.Body.Close()
@@ -107,6 +120,7 @@ func loginUserHTTP(this js.Value, args []js.Value) interface{} {
 		err = json.Unmarshal(body, &result)
 		if err != nil {
 			fmt.Printf("Error unmarshaling JSON: %s\n", err)
+			js.Global().Call("loginError")
 			return
 		}
 		// Get the salt from the map
@@ -125,18 +139,21 @@ func loginUserHTTP(this js.Value, args []js.Value) interface{} {
 		data, err := json.Marshal(payloadLogin)
 		if err != nil {
 			fmt.Printf("Error marshaling JSON: %s\n", err)
+			js.Global().Call("loginError")
 			return
 		}
 		// Make a POST request to the server with the JSON payload
 		resp, err := http.Post("http://127.0.0.1:8080/api/v1/login-user", "application/json", strings.NewReader(string(data)))
 		if err != nil {
 			fmt.Printf("POST request failed: %s\n", err)
+			js.Global().Call("loginError")
 			return
 		}
 		defer resp.Body.Close()
 
 		if resp.StatusCode != 200 {
 			fmt.Printf("User login failed, Invalid credentials\n")
+			js.Global().Call("loginError")
 			return
 		}
 		// Print the response status code and a success message
@@ -148,10 +165,12 @@ func loginUserHTTP(this js.Value, args []js.Value) interface{} {
 		err = json.Unmarshal([]byte(recData), &mapData)
 		if err != nil {
 			fmt.Printf("Error unmarshaling JSON: %s\n", err)
+			js.Global().Call("loginError")
 			return
 		}
 		ImgURL := mapData["url"].(string)
 		js.Global().Call("displayImage", ImgURL)
+		js.Global().Call("loginSuccess")
 	}()
 	return nil
 }
