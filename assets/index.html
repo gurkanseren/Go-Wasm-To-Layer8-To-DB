@@ -131,15 +131,21 @@
       const username = document.getElementById("registerUsername").value;
       const password = document.getElementById("registerPassword").value;
       const repeatPassword = document.getElementById("repeatPassword").value;
+      const repeatPasswordError = document.getElementById("repeatPasswordError");
 
       if (password !== repeatPassword) {
-        alert("Passwords do not match.");
+        repeatPasswordError.innerText = "Passwords do not match";
+        repeatPasswordError.style.color = "red";
         return;
+      } else {
+        repeatPasswordError.innerText = "User registered"
+        repeatPasswordError.style.color = "green";
       }
 
       // Call your Go function to register the user
       registerUser(username, password);
     }
+
 
     function logUser() {
       const username = document.getElementById("loginUsername").value;
@@ -176,10 +182,15 @@
     <div id="registerForm" class="form-container" style="display: none;">
       <h2>Register</h2>
       <div style="display: flex; flex-direction: column; align-items: center;">
+
         <input type="text" id="registerUsername" placeholder="Username" />
         <input type="password" id="registerPassword" placeholder="Password" />
         <input type="password" id="repeatPassword" placeholder="Repeat Password" />
       </div>
+
+      <div id="repeatPasswordError" class="error-message"
+        style="display: flex; flex-direction: column; align-items: center; padding-bottom: 5%;"></div>
+      <!-- Error message will be shown here -->
       <button onclick="regUser()">Register</button>
       <button class="back-button" id="backButton" onclick="goBack()">Back</button>
     </div>
