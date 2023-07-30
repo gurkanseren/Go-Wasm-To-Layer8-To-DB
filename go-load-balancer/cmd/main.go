@@ -22,6 +22,7 @@ func main() {
 	servers := []interfaces.Server{
 		utils.NewSimpleServer("http://localhost:8001"),
 		utils.NewSimpleServer("http://localhost:8002"),
+		utils.NewSimpleServer("http://localhost:8003"),
 	}
 	// create a load balancer and serve proxy requests
 	lb := utils.NewLoadBalancer(loadBalancerPort, servers)
