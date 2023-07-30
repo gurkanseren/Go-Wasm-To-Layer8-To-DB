@@ -22,6 +22,8 @@ func RegisterRoutes() http.HandlerFunc {
 
 		case "/api/v1/login-user":
 			Ctl.LoginUserHandler(w, r)
+		case "/api/v1/get-content":
+			Ctl.GetContentHandler(w, r)
 
 		default:
 			// Return a 404 Not Found error for unknown routes

@@ -1,18 +1,13 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"strings"
 	"syscall/js"
-	"time"
 
 	utils "github.com/globe-and-citizen/Go-Wasm-To-Layer8-To-DB/go-wasm/utils"
-	"nhooyr.io/websocket"
-	"nhooyr.io/websocket/wsjson"
 )
 
 // Try to connect to the server and do a ping request
@@ -63,7 +58,7 @@ func registerUserHTTP(this js.Value, args []js.Value) interface{} {
 			return
 		}
 		// Make a POST request to the server with the JSON payload
-		resp, err := http.Post("http://127.0.0.1:8080/api/v1/register-user", "application/json", strings.NewReader(string(data)))
+		resp, err := http.Post("http://127.0.0.1:8001/api/v1/register-user", "application/json", strings.NewReader(string(data)))
 		if err != nil {
 			fmt.Printf("POST request failed: %s\n", err)
 			js.Global().Call("regUserError")
@@ -106,7 +101,7 @@ func loginUserHTTP(this js.Value, args []js.Value) interface{} {
 			js.Global().Call("loginError")
 			return
 		}
-		respPrecheck, err := http.Post("http://127.0.0.1:8080/api/v1/login-precheck", "application/json", strings.NewReader(string(dataPrecheck)))
+		respPrecheck, err := http.Post("http://127.0.0.1:8001/api/v1/login-precheck", "application/json", strings.NewReader(string(dataPrecheck)))
 		if err != nil {
 			fmt.Printf("POST request failed: %s\n", err)
 			js.Global().Call("loginError")
@@ -143,7 +138,7 @@ func loginUserHTTP(this js.Value, args []js.Value) interface{} {
 			return
 		}
 		// Make a POST request to the server with the JSON payload
-		resp, err := http.Post("http://127.0.0.1:8080/api/v1/login-user", "application/json", strings.NewReader(string(data)))
+		resp, err := http.Post("http://127.0.0.1:8001/api/v1/login-user", "application/json", strings.NewReader(string(data)))
 		if err != nil {
 			fmt.Printf("POST request failed: %s\n", err)
 			js.Global().Call("loginError")
@@ -157,12 +152,32 @@ func loginUserHTTP(this js.Value, args []js.Value) interface{} {
 			return
 		}
 		// Print the response status code and a success message
-		fmt.Printf("User successfully logged in with status code: %d, Upgrading connection to WebSocket...\n", resp.StatusCode)
-		recData := utils.UpgradeConnToWebSocket(choice)
-		log.Printf("Connection upgraded! Received data from WebSocket: %s\n", recData)
-
+		fmt.Printf("User successfully logged in with status code: %d\n", resp.StatusCode)
+		choicePayload := struct {
+			Choice string `json:"choice"`
+		}{
+			Choice: choice,
+		}
+		// Marshal the payload to JSON
+		dataChoice, err := json.Marshal(choicePayload)
+		if err != nil {
+			fmt.Printf("Error marshaling JSON: %s\n", err)
+			js.Global().Call("loginError")
+			return
+		}
+		// Make a POST request to the server with the JSON payload
+		respChoice, err := http.Post("http://127.0.0.1:8001/api/v1/get-content", "application/json", strings.NewReader(string(dataChoice)))
+		if err != nil {
+			fmt.Printf("POST request failed: %s\n", err)
+			js.Global().Call("loginError")
+			return
+		}
+		defer respChoice.Body.Close()
+		// Read the response body
+		bodyChoice := utils.ReadResponseBody(respChoice.Body)
+		// Unmarshal the response body into a map
 		mapData := make(map[string]interface{})
-		err = json.Unmarshal([]byte(recData), &mapData)
+		err = json.Unmarshal(bodyChoice, &mapData)
 		if err != nil {
 			fmt.Printf("Error unmarshaling JSON: %s\n", err)
 			js.Global().Call("loginError")
@@ -175,29 +190,6 @@ func loginUserHTTP(this js.Value, args []js.Value) interface{} {
 	return nil
 }
 
-func connectToWebSocket(this js.Value, args []js.Value) interface{} {
-	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
-		defer cancel()
-
-		c, _, err := websocket.Dial(ctx, "ws://localhost:8080/ws", nil)
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer c.Close(websocket.StatusInternalError, "the sky is falling")
-
-		err = wsjson.Write(ctx, c, "hi")
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		fmt.Println("Successfully connected to WebSocket and sent data")
-
-		c.Close(websocket.StatusNormalClosure, "")
-	}()
-	return nil
-}
-
 func main() {
 	fmt.Println("Go Web Assembly Demo")
 	// Register the connectToServer function to the global namespace
@@ -206,8 +198,6 @@ func main() {
 	js.Global().Set("registerUser", js.FuncOf(registerUserHTTP))
 	// Register the loginUser function to the global namespace
 	js.Global().Set("loginUser", js.FuncOf(loginUserHTTP))
-	// Register the connectToWebSocket function to the global namespace
-	js.Global().Set("connectToWebSocket", js.FuncOf(connectToWebSocket))
 	// Keep the program running
 	<-make(chan bool)
 }

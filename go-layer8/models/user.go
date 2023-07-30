@@ -27,6 +27,10 @@ type LoginPrecheckResponseDTO struct {
 	Salt     string `json:"salt"`
 }
 
+type ContentReqDTO struct {
+	Choice string `json:"choice"`
+}
+
 func (User) TableName() string {
 	return "users"
 }
