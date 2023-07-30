@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/globe-and-citizen/Go-Wasm-To-Layer8-To-DB/go-layer8-slaves/layer8-slave-two/middleware"
-	router "github.com/globe-and-citizen/Go-Wasm-To-Layer8-To-DB/go-layer8-slaves/layer8-slave-two/router"
+	"github.com/globe-and-citizen/Go-Wasm-To-Layer8-To-DB/go-layer8-slaves/middleware"
+	router "github.com/globe-and-citizen/Go-Wasm-To-Layer8-To-DB/go-layer8-slaves/router"
 	"github.com/joho/godotenv"
 )
 

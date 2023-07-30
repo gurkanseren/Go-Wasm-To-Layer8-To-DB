@@ -3,7 +3,7 @@ package routes
 import (
 	"net/http"
 
-	Ctl "github.com/globe-and-citizen/Go-Wasm-To-Layer8-To-DB/go-layer8-slaves/layer8-slave-three/api/controller"
+	Ctl "github.com/globe-and-citizen/Go-Wasm-To-Layer8-To-DB/go-layer8-slaves/api/controller"
 )
 
 func RegisterRoutes() http.HandlerFunc {
