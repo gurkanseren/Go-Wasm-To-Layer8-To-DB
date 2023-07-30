@@ -18,7 +18,7 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	port := os.Getenv("SERVER_TWO_PORT")
+	port := os.Getenv("CONTENT_SERVER_PORT")
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Go Image Server")
