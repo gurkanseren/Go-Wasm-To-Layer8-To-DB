@@ -9,6 +9,7 @@ import (
 	"github.com/joho/godotenv"
 
 	Ctl "github.com/globe-and-citizen/Go-Wasm-To-Layer8-To-DB/go-http-server/controller"
+	"github.com/globe-and-citizen/Go-Wasm-To-Layer8-To-DB/go-http-server/middleware"
 )
 
 func main() {
@@ -25,7 +26,7 @@ func main() {
 	})
 
 	// Define the endpoint for serving the image URL
-	http.HandleFunc("/image", Ctl.ServeImage)
+	http.HandleFunc("/image", middleware.LogRequest(middleware.Cors(Ctl.ServeImage)))
 
 	// Start the HTTP server on port 9090
 	fmt.Printf("Server listening on localhost:%s\n", port)

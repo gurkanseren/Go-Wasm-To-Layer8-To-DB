@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/globe-and-citizen/Go-Wasm-To-Layer8-To-DB/go-wasm/middleware"
 	"github.com/joho/godotenv"
 )
 
@@ -22,7 +23,7 @@ func main() {
 	fs := http.FileServer(http.Dir("./assets"))
 
 	// Set up route for File Server
-	http.Handle("/", fs)
+	http.Handle("/", middleware.LogRequest(fs))
 
 	fmt.Printf("Server listening on localhost:%s\n", serverPort)
 
