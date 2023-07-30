@@ -13,6 +13,7 @@ import (
 
 func NewSimpleServer(addr string) *server.SimpleServer {
 	serverUrl, err := url.Parse(addr)
+	fmt.Println(serverUrl)
 	handleErr(err)
 
 	return &server.SimpleServer{

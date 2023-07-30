@@ -6,6 +6,9 @@ build-wasm:
 build-wasm-server:
 	cd go-wasm/cmd && go build -o ../../bin/wasm-server
 
+build-load-balancer:
+	cd go-load-balancer/cmd && go build -o ../../bin/load-balancer
+
 build-layer8-slave-one:
 	cd go-layer8-slaves/layer8-slave-one/cmd && go build -o ../../../bin/layer8-slave-one
 
@@ -19,7 +22,7 @@ layer8-slave-two: # Port 8002
 	make build-layer8-slave-two && ./bin/layer8-slave-two
 
 load-balancer: # Port 8000
-	cd go-load-balancer/cmd && go run main.go
+	make build-load-balancer && ./bin/load-balancer
 
 wasm: # Port 9000
 	make build-wasm && make build-wasm-server && ./bin/wasm-server
