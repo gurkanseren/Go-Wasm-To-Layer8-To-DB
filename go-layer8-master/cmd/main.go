@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/globe-and-citizen/Go-Wasm-To-Layer8-To-DB/go-layer8-slaves/layer8-slave-three/middleware"
-	router "github.com/globe-and-citizen/Go-Wasm-To-Layer8-To-DB/go-layer8-slaves/layer8-slave-three/router"
+	"github.com/globe-and-citizen/Go-Wasm-To-Layer8-To-DB/go-layer8-master/middleware"
+	router "github.com/globe-and-citizen/Go-Wasm-To-Layer8-To-DB/go-layer8-master/router"
 	"github.com/joho/godotenv"
 )
 
@@ -18,7 +18,7 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 	// Get the port to listen on from .env
-	serverPort := os.Getenv("LAYER8_SLAVE_THREE_PORT")
+	serverPort := os.Getenv("LAYER8_MASTER_PORT")
 
 	// Register the routes using the RegisterRoutes() function with logger middleware
 	http.HandleFunc("/api/v1/", middleware.LogRequest(middleware.Cors(router.RegisterRoutes())))

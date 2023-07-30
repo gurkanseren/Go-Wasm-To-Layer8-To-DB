@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/globe-and-citizen/Go-Wasm-To-Layer8-To-DB/go-layer8-slaves/layer8-slave-two/config"
-	"github.com/globe-and-citizen/Go-Wasm-To-Layer8-To-DB/go-layer8-slaves/layer8-slave-two/models"
+	"github.com/globe-and-citizen/Go-Wasm-To-Layer8-To-DB/go-layer8-slaves/layer8-slave-three/config"
+	"github.com/globe-and-citizen/Go-Wasm-To-Layer8-To-DB/go-layer8-slaves/layer8-slave-three/models"
 	"github.com/go-playground/validator/v10"
 )
 
