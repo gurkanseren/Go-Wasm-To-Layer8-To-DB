@@ -14,7 +14,7 @@ import (
 func connectToServer(this js.Value, args []js.Value) interface{} {
 	go func() {
 		// Make a GET request to the server
-		resp, err := http.Get("http://127.0.0.1:8001/api/v1/ping")
+		resp, err := http.Get("http://127.0.0.1:8000/api/v1/ping")
 		if err != nil {
 			fmt.Printf("GET request failed: %s\n", err)
 			return
@@ -58,7 +58,7 @@ func registerUserHTTP(this js.Value, args []js.Value) interface{} {
 			return
 		}
 		// Make a POST request to the server with the JSON payload
-		resp, err := http.Post("http://127.0.0.1:8001/api/v1/register-user", "application/json", strings.NewReader(string(data)))
+		resp, err := http.Post("http://127.0.0.1:8000/api/v1/register-user", "application/json", strings.NewReader(string(data)))
 		if err != nil {
 			fmt.Printf("POST request failed: %s\n", err)
 			js.Global().Call("regUserError")
@@ -101,7 +101,7 @@ func loginUserHTTP(this js.Value, args []js.Value) interface{} {
 			js.Global().Call("loginError")
 			return
 		}
-		respPrecheck, err := http.Post("http://127.0.0.1:8001/api/v1/login-precheck", "application/json", strings.NewReader(string(dataPrecheck)))
+		respPrecheck, err := http.Post("http://127.0.0.1:8000/api/v1/login-precheck", "application/json", strings.NewReader(string(dataPrecheck)))
 		if err != nil {
 			fmt.Printf("POST request failed: %s\n", err)
 			js.Global().Call("loginError")
@@ -138,7 +138,7 @@ func loginUserHTTP(this js.Value, args []js.Value) interface{} {
 			return
 		}
 		// Make a POST request to the server with the JSON payload
-		resp, err := http.Post("http://127.0.0.1:8001/api/v1/login-user", "application/json", strings.NewReader(string(data)))
+		resp, err := http.Post("http://127.0.0.1:8000/api/v1/login-user", "application/json", strings.NewReader(string(data)))
 		if err != nil {
 			fmt.Printf("POST request failed: %s\n", err)
 			js.Global().Call("loginError")
@@ -166,7 +166,7 @@ func loginUserHTTP(this js.Value, args []js.Value) interface{} {
 			return
 		}
 		// Make a POST request to the server with the JSON payload
-		respChoice, err := http.Post("http://127.0.0.1:8001/api/v1/get-content", "application/json", strings.NewReader(string(dataChoice)))
+		respChoice, err := http.Post("http://127.0.0.1:8000/api/v1/get-content", "application/json", strings.NewReader(string(dataChoice)))
 		if err != nil {
 			fmt.Printf("POST request failed: %s\n", err)
 			js.Global().Call("loginError")

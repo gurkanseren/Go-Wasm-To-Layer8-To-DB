@@ -30,7 +30,7 @@ func main() {
 		lb.ServeProxy(rw, req)
 	}
 	// register a proxy handler to handle all requests
-	http.HandleFunc("/api/v1/ping", handleRedirect)
+	http.HandleFunc("/", handleRedirect)
 	// start the server on the specified port
 	fmt.Printf("serving requests at 'localhost:%s'\n", lb.Port)
 	http.ListenAndServe(":"+lb.Port, nil)

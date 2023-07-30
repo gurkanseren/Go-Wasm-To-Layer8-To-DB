@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/globe-and-citizen/Go-Wasm-To-Layer8-To-DB/go-layer8-slaves/layer8-slave-one/config"
 	"github.com/globe-and-citizen/Go-Wasm-To-Layer8-To-DB/go-layer8-slaves/layer8-slave-one/models"
@@ -175,8 +176,9 @@ func GetContentHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+	port := os.Getenv("CONTENT_SERVER_PORT")
 	// Make request to the content server
-	resp, err := http.Get("http://localhost:9000/image" + "?id=" + req.Choice)
+	resp, err := http.Get("http://localhost:" + port + "/image" + "?id=" + req.Choice)
 	if err != nil {
 		log.Printf("failed to get picture: %v", err)
 		return
