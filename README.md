@@ -11,6 +11,25 @@ A test project for experimenting the connection between a Go standard WASM modul
 
 ### Usage
 
+**Note:** Make sure to run`go mod tidy` before running the project for the first time and make a .env file with the following variables (You can change the values if you want and use your own local DB Name and Password):
+
+```bash
+LOAD_BALANCER_PORT=8000
+LAYER8_SLAVE_ONE_PORT=8001
+LAYER8_SLAVE_TWO_PORT=8002
+LAYER8_SLAVE_THREE_PORT=8003
+WASM_SERVER_PORT=9000
+LAYER8_MASTER_PORT=9001
+CONTENT_SERVER_PORT=9002
+DB_USER=postgres
+DB_PASS=
+DB_NAME=
+DB_HOST=localhost
+DB_PORT=5432
+SSL_MODE=disable
+JWT_SECRET=secret
+```
+
 Open multiple terminals (6) and run the following commands in each:
 
 ```bash
