@@ -24,9 +24,6 @@ build-layer8-slave-three:
 load-balancer: # Port 8000
 	make build-load-balancer && ./bin/load-balancer
 
-layer8-master: # Port 9001
-	make build-layer8-master && ./bin/layer8-master
-
 layer8-slave-one: # Port 8001
 	make build-layer8-slave-one && ./bin/layer8-slave-one
 
@@ -39,5 +36,8 @@ layer8-slave-three: # Port 8003
 wasm: # Port 9000
 	make build-wasm && make build-wasm-server && ./bin/wasm-server
 
-content-server: # Port 9001
+layer8-master: # Port 9001
+	make build-layer8-master && ./bin/layer8-master
+
+content-server: # Port 9002
 	cd go-http-server/cmd && go run main.go
