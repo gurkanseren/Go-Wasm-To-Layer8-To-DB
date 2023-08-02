@@ -30,7 +30,7 @@ SSL_MODE=disable
 JWT_SECRET=secret
 ```
 
-Open multiple terminals (6) and run the following commands in each:
+Open multiple terminals (7) and run the following commands in each:
 
 ```bash
 make wasm
@@ -56,7 +56,11 @@ make layer8-slave-three
 make content-server
 ```
 
-**Note:** The `make wasm` command will generate the WASM module and run a File Server on specified Port. The `make load-balancer` will start a custom Load Balancer, that will serve as a proxy between WASM Module and Layer8 Slaves and distribute incoming requests equally. The `make layer8-slave-one` & `make layer8-slave-two` & `make layer8-slave-three` will start 3 Layer8 Slaves, that have same functionality, but different ports. The `make content-server` will start a Content Server, from which Layer8 Slaves will get the content and send it to the WASM module.
+```bash
+make layer8-master
+```
+
+**Note:** The `make wasm` command will generate the WASM module and run a File Server on specified Port. The `make load-balancer` will start a custom Load Balancer, that will serve as a proxy between WASM Module and Layer8 Slaves and distribute incoming requests equally. The `make layer8-slave-one` & `make layer8-slave-two` & `make layer8-slave-three` will start 3 Layer8 Slaves, that have same functionality, but different ports. The `make content-server` will start a Content Server, from which Layer8 Slaves will get the content and send it to the WASM module and the `make layer8-master` will start a Layer8 Master, from where the Slaves will get the Secret Key for JWT.
 
 ### Database
 

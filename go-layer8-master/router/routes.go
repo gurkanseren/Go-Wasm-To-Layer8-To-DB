@@ -11,6 +11,9 @@ func RegisterRoutes() http.HandlerFunc {
 		// Set up route for API
 		switch r.URL.Path {
 
+		case "/api/v1/ping":
+			Ctl.Ping(w, r)
+
 		case "/api/v1/jwt-secret":
 			Ctl.GetJwtSecret(w, r)
 
