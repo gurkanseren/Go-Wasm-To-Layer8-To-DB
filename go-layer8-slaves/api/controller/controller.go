@@ -6,6 +6,9 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
+
+	"github.com/golang-jwt/jwt/v4"
 
 	"github.com/globe-and-citizen/Go-Wasm-To-Layer8-To-DB/go-layer8-slaves/config"
 	"github.com/globe-and-citizen/Go-Wasm-To-Layer8-To-DB/go-layer8-slaves/models"
@@ -153,6 +156,51 @@ func LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 			log.Printf("Error sending response: %v", err)
 		}
 		return
+	}
+	// Get JWT_SECRET from the Layer8 Master Server
+	port := os.Getenv("LAYER8_MASTER_PORT")
+	respSecret, err := http.Get("http://localhost:" + port + "//api/v1/jwt-secret")
+	if err != nil {
+		log.Printf("failed to get picture: %v", err)
+		return
+	}
+	defer respSecret.Body.Close()
+	// Convert the response body to a string
+	RespBodyByte, err := ioutil.ReadAll(respSecret.Body)
+	if err != nil {
+		log.Printf("failed to read response body: %v", err)
+		return
+	}
+	// Convert RespBodyByte to string
+	JWT_SECRET := []byte(string(RespBodyByte))
+
+	expirationTime := time.Now().Add(10 * time.Minute)
+	claims := &models.Claims{
+		UserName: user.Username,
+		UserID:   user.ID,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(expirationTime),
+			Issuer:    "GlobeAndCitizen",
+		},
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString(JWT_SECRET)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, err := w.Write([]byte(err.Error()))
+		if err != nil {
+			log.Printf("Error sending response: %v", err)
+		}
+	}
+	resp := models.LoginUserResponseDTO{
+		Token: tokenString,
+	}
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, err := w.Write([]byte(err.Error()))
+		if err != nil {
+			log.Printf("Error sending response: %v", err)
+		}
 	}
 }
 
