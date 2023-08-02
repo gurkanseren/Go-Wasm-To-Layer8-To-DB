@@ -31,6 +31,10 @@ type ContentReqDTO struct {
 	Choice string `json:"choice"`
 }
 
+type LoginUserResponseDTO struct {
+	Token string `json:"token"`
+}
+
 func (User) TableName() string {
 	return "users"
 }

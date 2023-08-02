@@ -153,6 +153,21 @@ func loginUserHTTP(this js.Value, args []js.Value) interface{} {
 		}
 		// Print the response status code and a success message
 		fmt.Printf("User successfully logged in with status code: %d\n", resp.StatusCode)
+
+		bodyLogin := utils.ReadResponseBody(resp.Body)
+		// Unmarshal the response body into a map
+		var resultLogin map[string]interface{}
+		err = json.Unmarshal(bodyLogin, &resultLogin)
+		if err != nil {
+			fmt.Printf("Error unmarshaling JSON: %s\n", err)
+			js.Global().Call("loginError")
+			return
+		}
+		// Get the token from the map
+		token := resultLogin["token"].(string)
+		// Store the token in the browser's local storage
+		// js.Global().Get("localStorage").Call("setItem", "token", token)
+		fmt.Printf("Token: %s\n", token)
 		choicePayload := struct {
 			Choice string `json:"choice"`
 		}{
