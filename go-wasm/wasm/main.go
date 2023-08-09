@@ -80,14 +80,14 @@ func registerUserHTTP(this js.Value, args []js.Value) interface{} {
 
 func loginUserHTTP(this js.Value, args []js.Value) interface{} {
 	go func() {
-		if len(args) != 3 {
+		if len(args) != 2 {
 			fmt.Println("Invalid number of arguments passed")
 			js.Global().Call("loginError")
 			return
 		}
 		username := args[0].String()
 		password := args[1].String()
-		choice := args[2].String()
+		// choice := args[2].String()
 		// Get the user salt from the database
 		payloadPrecheck := struct {
 			Username string `json:"username"`
@@ -168,10 +168,23 @@ func loginUserHTTP(this js.Value, args []js.Value) interface{} {
 		// Store the token in the browser's local storage
 		// js.Global().Get("localStorage").Call("setItem", "token", token)
 		fmt.Printf("Token: %s\n", token)
+		js.Global().Call("loginSuccess", token)
+	}()
+	return nil
+}
+
+func getImageURL(this js.Value, args []js.Value) interface{} {
+	go func() {
+		token := args[0].String()
+		choice := args[1].String()
+		fmt.Printf("Token: %s\n", token)
+		fmt.Printf("Choice: %s\n", choice)
 		choicePayload := struct {
 			Choice string `json:"choice"`
+			Token  string `json:"token"`
 		}{
 			Choice: choice,
+			Token:  token,
 		}
 		// Marshal the payload to JSON
 		dataChoice, err := json.Marshal(choicePayload)
@@ -188,6 +201,11 @@ func loginUserHTTP(this js.Value, args []js.Value) interface{} {
 			return
 		}
 		defer respChoice.Body.Close()
+		if respChoice.StatusCode == 401 {
+			fmt.Printf("User not authorized\n")
+			js.Global().Call("notAuthorized")
+			return
+		}
 		// Read the response body
 		bodyChoice := utils.ReadResponseBody(respChoice.Body)
 		// Unmarshal the response body into a map
@@ -200,7 +218,6 @@ func loginUserHTTP(this js.Value, args []js.Value) interface{} {
 		}
 		ImgURL := mapData["url"].(string)
 		js.Global().Call("displayImage", ImgURL)
-		js.Global().Call("loginSuccess")
 	}()
 	return nil
 }
@@ -213,6 +230,8 @@ func main() {
 	js.Global().Set("registerUser", js.FuncOf(registerUserHTTP))
 	// Register the loginUser function to the global namespace
 	js.Global().Set("loginUser", js.FuncOf(loginUserHTTP))
+	// Register the getImageUrl function to the global namespace
+	js.Global().Set("getImageURL", js.FuncOf(getImageURL))
 	// Keep the program running
 	<-make(chan bool)
 }

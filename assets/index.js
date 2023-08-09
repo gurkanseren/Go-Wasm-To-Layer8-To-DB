@@ -8,7 +8,6 @@ WebAssembly.instantiateStreaming(fetch("module.wasm"), go.importObject).then(
 function displayImage(imageURL) {
   const imageElement = document.getElementById("imageElement");
   const scrollDownMsg = document.getElementById("scrollDownMsg");
-  // Show the scroll down message
   scrollDownMsg.style.display = "block";
   imageElement.src = imageURL;
 }
@@ -116,18 +115,23 @@ function regUserSuccess() {
 function logUser() {
   const username = document.getElementById("loginUsername").value;
   const password = document.getElementById("loginPassword").value;
-  const choice = document.getElementById("choice").value;
 
   // Call your Go function to login the user
-  const loginResult = loginUser(username, password, choice);
+  const loginResult = loginUser(username, password);
 }
 
-function loginSuccess(imageURL) {
-  const loginMessage = document.getElementById("loginMessage");
-  loginMessage.innerText = "Login successful";
-  loginMessage.style.color = "green";
-  loginMessage.style.display = "block";
-  loginMessage.style.textAlign = "center";
+function loginSuccess(token) {
+  // Store the token in local storage
+  localStorage.setItem("token", token);
+
+  const loginForm = document.getElementById("loginForm");
+  const optionsSection = document.getElementById("optionsSection");
+
+  // Hide the login form
+  loginForm.style.display = "none";
+
+  // Show the options section
+  optionsSection.style.display = "block";
 }
 
 function loginError() {
@@ -136,4 +140,25 @@ function loginError() {
   loginMessage.style.color = "red";
   loginMessage.style.display = "block";
   loginMessage.style.textAlign = "center";
+}
+
+function notAuthorized() {
+  const scrollDownMsg = document.getElementById("scrollDownMsg");
+  const imageElement = document.getElementById("imageElement");
+  scrollDownMsg.innerText = "Token is not valid or has expired";
+  scrollDownMsg.style.color = "red";
+  scrollDownMsg.style.display = "block";
+  scrollDownMsg.style.textAlign = "center";
+  imageElement.src = "";
+}
+
+function showImage(choice) {
+  const token = localStorage.getItem("token");
+  const scrollDownMsg = document.getElementById("scrollDownMsg");
+
+  // Hide the scroll down message
+  scrollDownMsg.style.display = "none";
+
+  // Call your Go function to get the image URL
+  getImageURL(token, choice);
 }

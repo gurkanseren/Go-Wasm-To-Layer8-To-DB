@@ -1,85 +1,96 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
     <link rel="icon" type="image/x-icon" href="data:image/x-icon;," />
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Go WASM to Layer8 to HTTP Server Test</title>
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="style.css" />
     <script src="wasm_exec.js"></script>
     <script src="index.js"></script>
   </head>
   <body>
-    <div id="app" class="page-content">
+    <!-- <h1 style="text-align: center;">Go WASM to Layer8 to HTTP Server Test</h1> -->
+    <div class="page-content">
       <!-- Login Form -->
-      <div v-if="showLoginForm" class="form-container">
+      <div id="loginForm" class="form-container" style="display: none">
         <h2>Login</h2>
-        <div class="form-inputs">
-          <input type="text" v-model="loginUsername" placeholder="Username" />
-          <input
-            type="password"
-            v-model="loginPassword"
-            placeholder="Password"
-          />
-          <select v-model="selectedChoice" id="choice">
-            <option value="1">PictureOne</option>
-            <option value="2">PictureTwo</option>
-            <option value="3">PictureThree</option>
-            <option value="4">PictureFour</option>
-          </select>
+        <div style="display: flex; flex-direction: column; align-items: center">
+          <input type="text" id="loginUsername" placeholder="Username" />
+          <input type="password" id="loginPassword" placeholder="Password" />
         </div>
-        <div class="message" v-if="loginMessage">{{ loginMessage }}</div>
-        <button @click="logUser">Login</button>
-        <button class="back-button" @click="goBack">Back</button>
+        <div
+          id="loginMessage"
+          class="message"
+          style="
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-bottom: 5%;
+          "
+        ></div>
+        <!-- Success/Error message will be shown here -->
+        <button onclick="logUser()">Login</button>
+        <button class="back-button" id="backButton" onclick="goBack()">
+          Back
+        </button>
       </div>
-
+      <div id="optionsSection" class="options-container" style="display: none">
+        <h2 style="text-align: center">Select an option</h2>
+        <button onclick="showImage(`1`)">Option 1</button>
+        <button onclick="showImage(`2`)">Option 2</button>
+        <button onclick="showImage(`3`)">Option 3</button>
+        <button onclick="showImage(`4`)">Option 4</button>
+      </div>
       <!-- Register Form -->
-      <div v-if="showRegisterForm" class="form-container">
+      <div id="registerForm" class="form-container" style="display: none">
         <h2>Register</h2>
-        <div class="form-inputs">
-          <input
-            type="text"
-            v-model="registerUsername"
-            placeholder="Username"
-          />
+        <div style="display: flex; flex-direction: column; align-items: center">
+          <input type="text" id="registerUsername" placeholder="Username" />
+          <input type="password" id="registerPassword" placeholder="Password" />
           <input
             type="password"
-            v-model="registerPassword"
-            placeholder="Password"
-          />
-          <input
-            type="password"
-            v-model="repeatPassword"
+            id="repeatPassword"
             placeholder="Repeat Password"
           />
         </div>
-        <div class="error-message" v-if="repeatPasswordError">
-          {{ repeatPasswordError }}
-        </div>
-        <button @click="regUser">Register</button>
-        <button class="back-button" @click="goBack">Back</button>
+
+        <div
+          id="repeatPasswordError"
+          class="error-message"
+          style="
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-bottom: 5%;
+          "
+        ></div>
+        <!-- Error message will be shown here -->
+        <button onclick="regUser()">Register</button>
+        <button class="back-button" id="backButton" onclick="goBack()">
+          Back
+        </button>
       </div>
 
-      <!-- Show Initial Buttons -->
-      <div v-if="showInitialButtons" class="form-container">
-        <button @click="showLoginFormSection">Login</button>
-        <button @click="showRegisterFormSection">Register</button>
+      <!-- Show Login and Register buttons initially -->
+      <div id="initialButtons" class="form-container">
+        <button id="loginButton" onclick="showLoginForm()">Login</button>
+        <button id="registerButton" onclick="showRegisterForm()">
+          Register
+        </button>
       </div>
-
-      <!-- Display Image -->
-      <div v-if="showImage" class="centered-container" style="margin-top: 20px">
-        <img class="centered-image" id="imageElement" :src="imageSrc" alt="" />
+      <div
+        id="scrollDownMsg"
+        style="display: none; text-align: center; color: #fff; margin-top: 10px"
+      >
+        Scroll down to see the image
       </div>
     </div>
-
-    <div
-      id="scrollDownMsg"
-      v-if="showImage"
-      style="text-align: center; color: #fff; margin-top: 10px"
-    >
-      Scroll down to see the image
+    <!-- Add an img element with an id to display the image -->
+    <!-- <img id="imageElement" src="" alt="" /> -->
+    <div class="centered-container" style="margin-top: 20px">
+      <!-- Remove the extra div wrapper -->
+      <img class="centered-image" id="imageElement" src="" alt="" />
     </div>
-    <script src="app.js"></script>
   </body>
 </html>

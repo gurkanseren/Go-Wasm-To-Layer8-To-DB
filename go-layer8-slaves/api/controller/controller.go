@@ -2,6 +2,7 @@ package controller
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -174,7 +175,7 @@ func LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 	// Convert RespBodyByte to string
 	JWT_SECRET := []byte(string(RespBodyByte))
 
-	expirationTime := time.Now().Add(10 * time.Minute)
+	expirationTime := time.Now().Add(1 * time.Minute)
 	claims := &models.Claims{
 		UserName: user.Username,
 		UserID:   user.ID,
@@ -224,6 +225,56 @@ func GetContentHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+	// Validate the JWT token
+	masterPort := os.Getenv("LAYER8_MASTER_PORT")
+	respSecret, err := http.Get("http://localhost:" + masterPort + "//api/v1/jwt-secret")
+	if err != nil {
+		log.Printf("failed to connect to master server: %v", err)
+		return
+	}
+	defer respSecret.Body.Close()
+	// Convert the response body to a string
+	RespBodyByte, err := ioutil.ReadAll(respSecret.Body)
+	if err != nil {
+		log.Printf("failed to read response body: %v", err)
+		return
+	}
+	// Convert RespBodyByte to string
+	JWT_SECRET := []byte(string(RespBodyByte))
+	// Parse the token
+	token, err := jwt.ParseWithClaims(req.Token, &models.Claims{}, func(token *jwt.Token) (interface{}, error) {
+		return JWT_SECRET, nil
+	})
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		_, err := w.Write([]byte(err.Error()))
+		if err != nil {
+			log.Printf("Error sending response: %v", err)
+		}
+		return
+	}
+	// Check if the token is valid
+	if !token.Valid {
+		w.WriteHeader(http.StatusUnauthorized)
+		_, err := w.Write([]byte("Invalid token"))
+		if err != nil {
+			log.Printf("Error sending response: %v", err)
+		}
+		return
+	}
+	// Get the user id from the token
+	claims, ok := token.Claims.(*models.Claims)
+	if !ok {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, err := w.Write([]byte("Error getting user id"))
+		if err != nil {
+			log.Printf("Error sending response: %v", err)
+		}
+		return
+	}
+	fmt.Println("User id: ", claims.UserID)
+	// expiryDate := time.Unix(claims.ExpiresAt, 0)
+	fmt.Println("Token expires at: ", claims.ExpiresAt)
 	port := os.Getenv("CONTENT_SERVER_PORT")
 	// Make request to the content server
 	resp, err := http.Get("http://localhost:" + port + "/image" + "?id=" + req.Choice)
@@ -234,14 +285,14 @@ func GetContentHandler(w http.ResponseWriter, r *http.Request) {
 	defer resp.Body.Close()
 
 	// Convert the response body to a string
-	RespBodyByte, err := ioutil.ReadAll(resp.Body)
+	RespBodyByteImg, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Printf("failed to read response body: %v", err)
 		return
 	}
 
 	// Convert RespBodyByte to string
-	RespBodyString := string(RespBodyByte)
+	RespBodyString := string(RespBodyByteImg)
 
 	// Send the response back to the WASM module
 	_, err = w.Write([]byte(RespBodyString))

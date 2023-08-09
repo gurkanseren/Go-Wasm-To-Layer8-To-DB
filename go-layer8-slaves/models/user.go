@@ -29,6 +29,7 @@ type LoginPrecheckResponseDTO struct {
 
 type ContentReqDTO struct {
 	Choice string `json:"choice"`
+	Token  string `json:"token"`
 }
 
 type LoginUserResponseDTO struct {

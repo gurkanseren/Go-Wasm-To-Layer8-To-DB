@@ -14,6 +14,7 @@ new Vue({
     imageSrc: "", // Set the image source here
     loginMessage: "",
     repeatPasswordError: "",
+    showPictureOptions: false,
   },
   methods: {
     logUser() {
