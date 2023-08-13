@@ -150,7 +150,7 @@ func LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Compare the password with the password in the database
-	if user.Password != req.Password {
+	if user.Password != req.SaltedHashedPassword {
 		w.WriteHeader(http.StatusUnauthorized)
 		_, err := w.Write([]byte("Invalid credentials"))
 		if err != nil {
@@ -175,7 +175,7 @@ func LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 	// Convert RespBodyByte to string
 	JWT_SECRET := []byte(string(RespBodyByte))
 
-	expirationTime := time.Now().Add(1 * time.Minute)
+	expirationTime := time.Now().Add(60 * time.Minute)
 	claims := &models.Claims{
 		UserName: user.Username,
 		UserID:   user.ID,

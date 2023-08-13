@@ -1,10 +1,10 @@
 package models
 
 type User struct {
-	ID       uint   `gorm:"primaryKey;autoIncrement;not null" json:"id"`
-	Username string `gorm:"unique" json:"username"`
-	Password string `json:"password"`
-	Salt     string `json:"salt"`
+	ID       uint   `gorm:"primaryKey; unique; autoIncrement; not null" json:"id"`
+	Username string `gorm:"unique; not null" json:"username"`
+	Password string `gorm:"not null" json:"password"`
+	Salt     string `gorm:"not null" json:"salt"`
 }
 
 type RegisterUserDTO struct {
@@ -14,8 +14,8 @@ type RegisterUserDTO struct {
 }
 
 type LoginUserDTO struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Username             string `json:"username"`
+	SaltedHashedPassword string `json:"password"`
 }
 
 type LoginPrecheckDTO struct {

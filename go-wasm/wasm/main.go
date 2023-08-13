@@ -87,7 +87,6 @@ func loginUserHTTP(this js.Value, args []js.Value) interface{} {
 		}
 		username := args[0].String()
 		password := args[1].String()
-		// choice := args[2].String()
 		// Get the user salt from the database
 		payloadPrecheck := struct {
 			Username string `json:"username"`
