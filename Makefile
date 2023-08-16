@@ -1,7 +1,7 @@
 .PHONY: app
 
 build-wasm:
-	cd go-wasm/wasm && GOOS=js GOARCH=wasm go build -o  ../../assets/module.wasm
+	cd go-wasm/wasm && GOOS=js GOARCH=wasm go1.20.7 build -o  ../../assets/module.wasm
 
 build-wasm-server:
 	cd go-wasm/cmd && go build -o ../../bin/wasm-server
