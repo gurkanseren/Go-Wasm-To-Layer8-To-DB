@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 	"syscall/js"
 
@@ -13,8 +14,7 @@ import (
 // Try to connect to the server and do a ping request
 func connectToServer(this js.Value, args []js.Value) interface{} {
 	go func() {
-		// Make a GET request to the server
-		resp, err := http.Get("http://127.0.0.1:8000/api/v1/ping")
+		resp, err := http.Get("http://127.0.0.1:" + os.Getenv("LOAD_BALANCER_PORT") + "/api/v1/ping")
 		if err != nil {
 			fmt.Printf("GET request failed: %s\n", err)
 			return
