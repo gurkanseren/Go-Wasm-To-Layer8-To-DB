@@ -44,3 +44,6 @@ content-server: # Port 9002
 
 generate-layer8-master-proto:
 	cd go-layer8-master && protoc --go_out=. --go-grpc_out=. proto/Layer8Master.proto
+
+generate-layer8-slave-proto:
+	cd go-layer8-slaves && protoc --go_out=. --go-grpc_out=. proto/Layer8Slave.proto

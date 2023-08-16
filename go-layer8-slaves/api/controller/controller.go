@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"context"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/sha256"
@@ -17,10 +18,13 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
+	"google.golang.org/grpc"
 
 	"github.com/globe-and-citizen/Go-Wasm-To-Layer8-To-DB/go-layer8-slaves/config"
 	"github.com/globe-and-citizen/Go-Wasm-To-Layer8-To-DB/go-layer8-slaves/models"
 	"github.com/go-playground/validator/v10"
+
+	pb "github.com/globe-and-citizen/Go-Wasm-To-Layer8-To-DB/go-layer8-slaves/service"
 )
 
 // PingHandler handles ping requests
@@ -165,22 +169,24 @@ func LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	// Get JWT_SECRET from the Layer8 Master Server
-	port := os.Getenv("LAYER8_MASTER_PORT")
-	respSecret, err := http.Get("http://localhost:" + port + "//api/v1/jwt-secret")
+	masterPort := os.Getenv("LAYER8_MASTER_PORT")
+	// Get JWT_SECRET from the Layer8 Master gRPC server
+	conn, err := grpc.Dial("localhost:"+masterPort, grpc.WithInsecure())
 	if err != nil {
-		log.Printf("failed to get picture: %v", err)
+		log.Fatalf("did not connect: %v", err)
+	}
+	defer conn.Close()
+	// Create gRPC client
+	client := pb.NewLayer8MasterServiceClient(conn)
+	// Make gRPC request
+	jwtSecretResp, err := client.GetJwtSecret(context.Background(), &pb.Empty{})
+	if err != nil {
+		log.Printf("failed to get jwt secret: %v", err)
 		return
 	}
-	defer respSecret.Body.Close()
-	// Convert the response body to a string
-	RespBodyByte, err := ioutil.ReadAll(respSecret.Body)
-	if err != nil {
-		log.Printf("failed to read response body: %v", err)
-		return
-	}
-	// Convert RespBodyByte to string
-	JWT_SECRET := []byte(string(RespBodyByte))
+	JWT_SECRET_STR := jwtSecretResp.JwtSecret
+	// Save the JWT_SECRET as a byte array
+	JWT_SECRET_BYTE := []byte(JWT_SECRET_STR)
 
 	expirationTime := time.Now().Add(60 * time.Minute)
 	claims := &models.Claims{
@@ -192,7 +198,7 @@ func LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString(JWT_SECRET)
+	tokenString, err := token.SignedString(JWT_SECRET_BYTE)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		_, err := w.Write([]byte(err.Error()))
@@ -232,28 +238,30 @@ func GetContentHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	// Validate the JWT token
 	masterPort := os.Getenv("LAYER8_MASTER_PORT")
-	respSecret, err := http.Get("http://localhost:" + masterPort + "/api/v1/jwt-secret")
+	// Get JWT_SECRET from the Layer8 Master gRPC server
+	conn, err := grpc.Dial("localhost:"+masterPort, grpc.WithInsecure())
 	if err != nil {
-		log.Printf("failed to connect to master server: %v", err)
+		log.Fatalf("did not connect: %v", err)
+	}
+	defer conn.Close()
+	// Create gRPC client
+	client := pb.NewLayer8MasterServiceClient(conn)
+	// Make gRPC request
+	jwtSecretResp, err := client.GetJwtSecret(context.Background(), &pb.Empty{})
+	if err != nil {
+		log.Printf("failed to get jwt secret: %v", err)
 		return
 	}
-	defer respSecret.Body.Close()
-	// Convert the response body to a string
-	RespBodyByte, err := ioutil.ReadAll(respSecret.Body)
-	if err != nil {
-		log.Printf("failed to read response body: %v", err)
-		return
-	}
-	// Convert RespBodyByte to string
-	JWT_SECRET := []byte(string(RespBodyByte))
+	JWT_SECRET_STR := jwtSecretResp.JwtSecret
+	// Save the JWT_SECRET as a byte array
+	JWT_SECRET_BYTE := []byte(JWT_SECRET_STR)
 	// Separate the ECDSA signature from the rest of the token
 	JwtSignedToken := strings.Split(req.Token, ".")[0] + "." + strings.Split(req.Token, ".")[1] + "." + strings.Split(req.Token, ".")[2]
 	fmt.Println("JwtSignedToken: ", JwtSignedToken)
 	// Parse the token
 	token, err := jwt.ParseWithClaims(JwtSignedToken, &models.Claims{}, func(token *jwt.Token) (interface{}, error) {
-		return JWT_SECRET, nil
+		return JWT_SECRET_BYTE, nil
 	})
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
@@ -285,21 +293,15 @@ func GetContentHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("User id: ", claims.UserID)
 	fmt.Println("Token expires at: ", claims.ExpiresAt)
 
-	// Get the public key from the Layer8 Master Server
-	respPubKey, err := http.Get("http://localhost:" + masterPort + "/api/v1/public-key")
+	// Make gRPC request
+	pubKeyResp, err := client.GetPublicKey(context.Background(), &pb.Empty{})
 	if err != nil {
-		log.Printf("failed to connect to master server: %v", err)
+		log.Printf("failed to get jwt secret: %v", err)
 		return
 	}
-	defer respSecret.Body.Close()
-	// Convert the response body to a string
-	RespPubKeyByte, err := ioutil.ReadAll(respPubKey.Body)
-	if err != nil {
-		log.Printf("failed to read response body: %v", err)
-		return
-	}
-	// Convert RespBodyByte to string
-	PUBLIC_KEY := string(RespPubKeyByte)
+
+	PUBLIC_KEY := pubKeyResp.PublicKey
+	fmt.Printf("PUBLIC_KEY: %v\n", PUBLIC_KEY)
 	publicKeyBytes, _ := hex.DecodeString(PUBLIC_KEY)
 
 	// Separate the R and S components from the SignedToken using the dot separator
