@@ -1,12 +1,19 @@
 package controller
 
 import (
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/sha256"
+	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math/big"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -227,7 +234,7 @@ func GetContentHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	// Validate the JWT token
 	masterPort := os.Getenv("LAYER8_MASTER_PORT")
-	respSecret, err := http.Get("http://localhost:" + masterPort + "//api/v1/jwt-secret")
+	respSecret, err := http.Get("http://localhost:" + masterPort + "/api/v1/jwt-secret")
 	if err != nil {
 		log.Printf("failed to connect to master server: %v", err)
 		return
@@ -241,8 +248,11 @@ func GetContentHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	// Convert RespBodyByte to string
 	JWT_SECRET := []byte(string(RespBodyByte))
+	// Separate the ECDSA signature from the rest of the token
+	JwtSignedToken := strings.Split(req.Token, ".")[0] + "." + strings.Split(req.Token, ".")[1] + "." + strings.Split(req.Token, ".")[2]
+	fmt.Println("JwtSignedToken: ", JwtSignedToken)
 	// Parse the token
-	token, err := jwt.ParseWithClaims(req.Token, &models.Claims{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(JwtSignedToken, &models.Claims{}, func(token *jwt.Token) (interface{}, error) {
 		return JWT_SECRET, nil
 	})
 	if err != nil {
@@ -273,8 +283,60 @@ func GetContentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Println("User id: ", claims.UserID)
-	// expiryDate := time.Unix(claims.ExpiresAt, 0)
 	fmt.Println("Token expires at: ", claims.ExpiresAt)
+
+	// Get the public key from the Layer8 Master Server
+	respPubKey, err := http.Get("http://localhost:" + masterPort + "/api/v1/public-key")
+	if err != nil {
+		log.Printf("failed to connect to master server: %v", err)
+		return
+	}
+	defer respSecret.Body.Close()
+	// Convert the response body to a string
+	RespPubKeyByte, err := ioutil.ReadAll(respPubKey.Body)
+	if err != nil {
+		log.Printf("failed to read response body: %v", err)
+		return
+	}
+	// Convert RespBodyByte to string
+	PUBLIC_KEY := string(RespPubKeyByte)
+	publicKeyBytes, _ := hex.DecodeString(PUBLIC_KEY)
+
+	// Separate the R and S components from the SignedToken using the dot separator
+	encodedR := strings.Split(req.Token, ".")[3]
+	encodedS := strings.Split(req.Token, ".")[4]
+
+	rBytes, _ := base64.RawURLEncoding.DecodeString(encodedR)
+	sBytes, _ := base64.RawURLEncoding.DecodeString(encodedS)
+
+	// Create a new ECDSA public key
+	pubKey := new(ecdsa.PublicKey)
+	pubKey.Curve = elliptic.P256()
+	pubKey.X, pubKey.Y = elliptic.Unmarshal(elliptic.P256(), publicKeyBytes)
+
+	// Deserialize the original claims
+	originalClaims := map[string]interface{}{
+		"WasmSignature": "Signed by Go-WASM Client, Globe&Citizen",
+	}
+
+	// Serialize the original claims
+	encodedOriginalClaims := base64.RawURLEncoding.EncodeToString([]byte(fmt.Sprintf(`{"WasmSignature":"%s"}`, originalClaims["WasmSignature"])))
+
+	// Hash the original claims data
+	hash := sha256.Sum256([]byte(encodedOriginalClaims))
+
+	// Verify the ECDSA signature
+	isValid := ecdsa.Verify(pubKey, hash[:], new(big.Int).SetBytes(rBytes), new(big.Int).SetBytes(sBytes))
+	if !isValid {
+		w.WriteHeader(http.StatusUnauthorized)
+		_, err := w.Write([]byte("ECDSA signature is invalid"))
+		if err != nil {
+			log.Printf("Error sending response: %v", err)
+		}
+		return
+	}
+	fmt.Println("ECDSA signature is valid: ", encodedR, encodedS)
+
 	port := os.Getenv("CONTENT_SERVER_PORT")
 	// Make request to the content server
 	resp, err := http.Get("http://localhost:" + port + "/image" + "?id=" + req.Choice)

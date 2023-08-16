@@ -1,8 +1,15 @@
 package main
 
 import (
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"math/big"
 	"net/http"
 	"os"
 	"strings"
@@ -176,14 +183,38 @@ func getImageURL(this js.Value, args []js.Value) interface{} {
 	go func() {
 		token := args[0].String()
 		choice := args[1].String()
-		fmt.Printf("Token: %s\n", token)
-		fmt.Printf("Choice: %s\n", choice)
+
+		privateKeyBytes, _ := hex.DecodeString("9c285f0cc6dbe2a3ef7db9cce7d64045bf38b150b430448c2bd0d421034ae915")
+		// Convert the private key bytes to an ECDSA private key
+		privKey := new(ecdsa.PrivateKey)
+		privKey.Curve = elliptic.P256()
+		privKey.D = new(big.Int).SetBytes(privateKeyBytes)
+		privKey.PublicKey.Curve = privKey.Curve
+		privKey.PublicKey.X, privKey.PublicKey.Y = privKey.Curve.ScalarBaseMult(privKey.D.Bytes())
+		// Create a new claims for the additional Token part
+		claims := map[string]interface{}{
+			"WasmSignature": "Signed by Go-WASM Client, Globe&Citizen",
+		}
+		// Serialize the new claims
+		encodedClaims := base64.RawURLEncoding.EncodeToString([]byte(fmt.Sprintf(`{"WasmSignature":"%s"}`, claims["WasmSignature"])))
+		// Hash the data to be signed
+		hash := sha256.Sum256([]byte(encodedClaims))
+		// Compute the ECDSA signature
+		r, s, err := ecdsa.Sign(rand.Reader, privKey, hash[:])
+		if err != nil {
+			fmt.Println("Error signing:", err)
+			return
+		}
+		SignedToken := fmt.Sprintf(".%s.%s", base64.RawURLEncoding.EncodeToString(r.Bytes()), base64.RawURLEncoding.EncodeToString(s.Bytes()))
+		DoubleSignedToken := fmt.Sprintf("%s%s", token, SignedToken)
+		fmt.Printf("DoubleSignedToken: %s\n", DoubleSignedToken)
+
 		choicePayload := struct {
 			Choice string `json:"choice"`
 			Token  string `json:"token"`
 		}{
 			Choice: choice,
-			Token:  token,
+			Token:  DoubleSignedToken,
 		}
 		// Marshal the payload to JSON
 		dataChoice, err := json.Marshal(choicePayload)
