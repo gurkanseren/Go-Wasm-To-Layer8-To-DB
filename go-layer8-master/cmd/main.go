@@ -3,12 +3,13 @@ package main
 import (
 	"fmt"
 	"log"
-	"net/http"
+	"net"
 	"os"
 
-	"github.com/globe-and-citizen/Go-Wasm-To-Layer8-To-DB/go-layer8-master/middleware"
-	router "github.com/globe-and-citizen/Go-Wasm-To-Layer8-To-DB/go-layer8-master/router"
+	interfaces "github.com/globe-and-citizen/Go-Wasm-To-Layer8-To-DB/go-layer8-master/pkg/interface"
+	pb "github.com/globe-and-citizen/Go-Wasm-To-Layer8-To-DB/go-layer8-master/pkg/service"
 	"github.com/joho/godotenv"
+	"google.golang.org/grpc"
 )
 
 func main() {
@@ -20,15 +21,15 @@ func main() {
 	// Get the port to listen on from .env
 	serverPort := os.Getenv("LAYER8_MASTER_PORT")
 
-	// Register the routes using the RegisterRoutes() function with logger middleware
-	http.HandleFunc("/api/v1/", middleware.LogRequest(middleware.Cors(router.RegisterRoutes())))
-
-	fmt.Printf("Server listening on localhost:%s\n", serverPort)
-
-	// Start the server on localhost and log any errors
-	err = http.ListenAndServe(fmt.Sprintf(":%s", serverPort), nil)
+	lis, err := net.Listen("tcp", "localhost:"+serverPort)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("failed to listen: %v", err)
 	}
-	fmt.Println("Server stopped")
+	s := grpc.NewServer()
+	pb.RegisterLayer8MasterServiceServer(s, &interfaces.Server{})
+
+	fmt.Println("Layer8 Master gRPC server listening on port " + serverPort)
+	if err := s.Serve(lis); err != nil {
+		log.Fatalf("failed to serve: %v", err)
+	}
 }

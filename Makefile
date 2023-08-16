@@ -41,3 +41,6 @@ layer8-master: # Port 9001
 
 content-server: # Port 9002
 	cd go-http-server/cmd && go run main.go
+
+generate-layer8-master-proto:
+	cd go-layer8-master && protoc --go_out=. --go-grpc_out=. proto/Layer8Master.proto
