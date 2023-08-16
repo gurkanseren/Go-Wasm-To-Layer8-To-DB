@@ -17,6 +17,9 @@ func RegisterRoutes() http.HandlerFunc {
 		case "/api/v1/jwt-secret":
 			Ctl.GetJwtSecret(w, r)
 
+		case "/api/v1/public-key":
+			Ctl.GetPublicKey(w, r)
+
 		default:
 			// Return a 404 Not Found error for unknown routes
 			http.NotFound(w, r)
