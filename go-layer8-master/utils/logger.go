@@ -7,7 +7,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-// Custom unaryInterceptor to log incoming requests
+// Custom Logger to log incoming requests
 func UnaryInterceptor(logger *log.Logger) grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,

@@ -107,6 +107,7 @@ func loginUserHTTP(this js.Value, args []js.Value) interface{} {
 			js.Global().Call("loginError")
 			return
 		}
+		// Do something for Private and Public key here
 		respPrecheck, err := http.Post("http://127.0.0.1:8000/api/v1/login-precheck", "application/json", strings.NewReader(string(dataPrecheck)))
 		if err != nil {
 			fmt.Printf("POST request failed: %s\n", err)
@@ -183,7 +184,6 @@ func getImageURL(this js.Value, args []js.Value) interface{} {
 	go func() {
 		token := args[0].String()
 		choice := args[1].String()
-
 		privateKeyBytes, _ := hex.DecodeString("9c285f0cc6dbe2a3ef7db9cce7d64045bf38b150b430448c2bd0d421034ae915")
 		// Convert the private key bytes to an ECDSA private key
 		privKey := new(ecdsa.PrivateKey)

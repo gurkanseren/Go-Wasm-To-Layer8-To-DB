@@ -39,7 +39,7 @@ func LogRequest(next http.Handler) http.HandlerFunc {
 		// Use the custom response writer to capture the status code
 		crw := &statusCapturingResponseWriter{w, http.StatusOK}
 		// Call the next handler in the chain with the custom response writer
-		next.ServeHTTP(crw, r)
+		next.ServeHTTP(crw.ResponseWriter, r)
 		// Log information about the request
 		clientIP := r.RemoteAddr
 		method := r.Method
@@ -50,3 +50,9 @@ func LogRequest(next http.Handler) http.HandlerFunc {
 		log.Printf("%s - %s %s - %d - %dms", clientIP, method, uri, statusCode, processingTime)
 	}
 }
+
+
+// statusCapturingResponseWriter.Write()
+// crw.ResponseWriter.Write()
+// if you do't include a key
+// the methods of the sub-struct are included with the top-struct

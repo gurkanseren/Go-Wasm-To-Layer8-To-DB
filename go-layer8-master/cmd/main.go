@@ -18,7 +18,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error loading .env file: %v", err)
 	}
-
 	// Get the port to listen on from .env
 	serverPort := os.Getenv("LAYER8_MASTER_PORT")
 
@@ -26,12 +25,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to listen: %v", err)
 	}
-
 	// Create a new logger instance for more detailed logging
 	logger := log.New(os.Stdout, "[Layer8-M-gRPC] ", log.LstdFlags)
 
 	s := grpc.NewServer(
-		// You can add interceptor here to log incoming requests
+		// Custom Logger
 		grpc.UnaryInterceptor(utils.UnaryInterceptor(logger)),
 	)
 	pb.RegisterLayer8MasterServiceServer(s, &interfaces.Server{})
