@@ -72,7 +72,8 @@ CREATE TABLE IF NOT EXISTS public.users
     id SERIAL PRIMARY KEY NOT NULL,
     username character varying UNIQUE NOT NULL,
     password character varying NOT NULL,
-    salt character varying(255)
+    salt character varying(255),
+    public_key character varying(255)
 );
 ```
 

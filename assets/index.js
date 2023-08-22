@@ -123,6 +123,8 @@ function logUser() {
 function loginSuccess(token) {
   // Store the token in local storage
   localStorage.setItem("token", token);
+  // Store the token in a cookie
+  // document.cookie = `token=${token}`;
 
   const loginForm = document.getElementById("loginForm");
   const optionsSection = document.getElementById("optionsSection");

@@ -113,6 +113,14 @@ func LoginPrecheckHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+	err := db.Model(&user).Update("public_key", req.PubKey).Error
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, err := w.Write([]byte(err.Error()))
+		if err != nil {
+			log.Printf("Error sending response: %v", err)
+		}
+	}
 	resp := models.LoginPrecheckResponseDTO{
 		Username: user.Username,
 		Salt:     user.Salt,
@@ -293,14 +301,21 @@ func GetContentHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("User id: ", claims.UserID)
 	fmt.Println("Token expires at: ", claims.ExpiresAt)
 
-	// Make gRPC request
-	pubKeyResp, err := client.GetPublicKey(context.Background(), &pb.Empty{})
-	if err != nil {
-		log.Printf("failed to get jwt secret: %v", err)
-		return
+	// Make connection to database
+	db := config.SetupDatabaseConnection()
+	// Close connection database
+	defer config.CloseDatabaseConnection(db)
+	// Get the public key of the user from the database saved during the login precheck
+	var user models.User
+	if err := db.Where("id = ?", claims.UserID).First(&user).Error; err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, err := w.Write([]byte(err.Error()))
+		if err != nil {
+			log.Printf("Error sending response: %v", err)
+		}
 	}
 
-	PUBLIC_KEY := pubKeyResp.PublicKey
+	PUBLIC_KEY := user.PublicKey
 	fmt.Printf("PUBLIC_KEY: %v\n", PUBLIC_KEY)
 	publicKeyBytes, _ := hex.DecodeString(PUBLIC_KEY)
 

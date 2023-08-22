@@ -94,12 +94,25 @@ func loginUserHTTP(this js.Value, args []js.Value) interface{} {
 		}
 		username := args[0].String()
 		password := args[1].String()
+		privKey, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+		// Serialize the private key
+		privKeyBytes := privKey.D.Bytes()
+		// Convert the private key bytes to a hex string
+		privKeyHex := hex.EncodeToString(privKeyBytes)
+		// Generate a public key from the private key
+		PubKeyHex := utils.GenPubKeyHex(privKeyHex)
+		// Store the private key in the browser's local storage
+		js.Global().Get("localStorage").Call("setItem", "privKey", privKeyHex)
 		// Get the user salt from the database
 		payloadPrecheck := struct {
 			Username string `json:"username"`
+			PubKey   string `json:"public_key"`
 		}{
 			Username: username,
+			PubKey:   PubKeyHex,
 		}
+		fmt.Printf("PrivKeyHex: %s\n", privKeyHex)
+		fmt.Printf("PubKeyHex: %s\n", PubKeyHex)
 		// Marshal the payload to JSON
 		dataPrecheck, err := json.Marshal(payloadPrecheck)
 		if err != nil {
@@ -174,6 +187,7 @@ func loginUserHTTP(this js.Value, args []js.Value) interface{} {
 		token := resultLogin["token"].(string)
 		// Store the token in the browser's local storage
 		// js.Global().Get("localStorage").Call("setItem", "token", token)
+		// Store the token in the browser's memory
 		fmt.Printf("Token: %s\n", token)
 		js.Global().Call("loginSuccess", token)
 	}()
@@ -184,7 +198,10 @@ func getImageURL(this js.Value, args []js.Value) interface{} {
 	go func() {
 		token := args[0].String()
 		choice := args[1].String()
-		privateKeyBytes, _ := hex.DecodeString("9c285f0cc6dbe2a3ef7db9cce7d64045bf38b150b430448c2bd0d421034ae915")
+		// Get private key from the browser's local storage
+		privKeyHex := js.Global().Get("localStorage").Call("getItem", "privKey").String()
+		// Convert the private key hex string to bytes
+		privateKeyBytes, _ := hex.DecodeString(privKeyHex)
 		// Convert the private key bytes to an ECDSA private key
 		privKey := new(ecdsa.PrivateKey)
 		privKey.Curve = elliptic.P256()
