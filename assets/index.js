@@ -5,6 +5,8 @@ WebAssembly.instantiateStreaming(fetch("module.wasm"), go.importObject).then(
   }
 );
 
+let TokenInMemory = "";
+
 function displayImage(imageURL) {
   const imageElement = document.getElementById("imageElement");
   const scrollDownMsg = document.getElementById("scrollDownMsg");
@@ -122,9 +124,11 @@ function logUser() {
 
 function loginSuccess(token) {
   // Store the token in local storage
-  localStorage.setItem("token", token);
+  // localStorage.setItem("token", token);
   // Store the token in a cookie
   // document.cookie = `token=${token}`;
+  // Store the token in memory
+  TokenInMemory = token;
 
   const loginForm = document.getElementById("loginForm");
   const optionsSection = document.getElementById("optionsSection");
@@ -155,7 +159,8 @@ function notAuthorized() {
 }
 
 function showImage(choice) {
-  const token = localStorage.getItem("token");
+  // const token = localStorage.getItem("token");
+  const token = TokenInMemory;
   const scrollDownMsg = document.getElementById("scrollDownMsg");
 
   // Hide the scroll down message

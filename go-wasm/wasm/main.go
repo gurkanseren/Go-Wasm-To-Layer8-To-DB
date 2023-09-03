@@ -9,6 +9,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"log"
 	"math/big"
 	"net/http"
 	"os"
@@ -198,6 +199,8 @@ func getImageURL(this js.Value, args []js.Value) interface{} {
 	go func() {
 		token := args[0].String()
 		choice := args[1].String()
+		log.Printf("Token: %s\n", token)
+		log.Printf("Choice: %s\n", choice)
 		// Get private key from the browser's local storage
 		privKeyHex := js.Global().Get("localStorage").Call("getItem", "privKey").String()
 		// Convert the private key hex string to bytes
