@@ -9,7 +9,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"log"
 	"math/big"
 	"net/http"
 	"os"
@@ -114,8 +113,6 @@ func loginUserHTTP(this js.Value, args []js.Value) interface{} {
 			Username: username,
 			PubKey:   PubKeyHex,
 		}
-		fmt.Printf("PrivKeyHex: %s\n", privKeyHex)
-		fmt.Printf("PubKeyHex: %s\n", PubKeyHex)
 		// Marshal the payload to JSON
 		dataPrecheck, err := json.Marshal(payloadPrecheck)
 		if err != nil {
@@ -191,7 +188,6 @@ func loginUserHTTP(this js.Value, args []js.Value) interface{} {
 		// Store the token in the browser's local storage
 		// js.Global().Get("localStorage").Call("setItem", "token", token)
 		// Store the token in the browser's memory
-		fmt.Printf("Token: %s\n", token)
 		js.Global().Call("loginSuccess", token)
 	}()
 	return nil
@@ -205,8 +201,6 @@ func getImageURL(this js.Value, args []js.Value) interface{} {
 		// privKeyHex := js.Global().Get("localStorage").Call("getItem", "privKey").String()
 		// Get private key from the browser's memory
 		privKeyHex := js.Global().Call("getPrivKeyFromMemory").String()
-		// Log the private key for debugging purposes (REMOVE THIS LOG IN FUTURE)
-		log.Printf("PrivKeyHex: %s\n", privKeyHex)
 		// Convert the private key hex string to bytes
 		privateKeyBytes, _ := hex.DecodeString(privKeyHex)
 		// Convert the private key bytes to an ECDSA private key
@@ -231,7 +225,6 @@ func getImageURL(this js.Value, args []js.Value) interface{} {
 		}
 		SignedToken := fmt.Sprintf(".%s.%s", base64.RawURLEncoding.EncodeToString(r.Bytes()), base64.RawURLEncoding.EncodeToString(s.Bytes()))
 		DoubleSignedToken := fmt.Sprintf("%s%s", token, SignedToken)
-		fmt.Printf("DoubleSignedToken: %s\n", DoubleSignedToken)
 
 		choicePayload := struct {
 			Choice string `json:"choice"`
