@@ -38,7 +38,7 @@ make wasm
 
 **Note:** For installing a specific version of go i.e., go 1.20.7, use the commands:
 
-```bash
+```go
 $ go install golang.org/dl/go1.20.7@latest
 $ go1.20.7 download
 $ go1.20.7 version
