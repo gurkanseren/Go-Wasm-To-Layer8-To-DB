@@ -103,7 +103,9 @@ func loginUserHTTP(this js.Value, args []js.Value) interface{} {
 		// Generate a public key from the private key
 		PubKeyHex := utils.GenPubKeyHex(privKeyHex)
 		// Store the private key in the browser's local storage
-		js.Global().Get("localStorage").Call("setItem", "privKey", privKeyHex)
+		// js.Global().Get("localStorage").Call("setItem", "privKey", privKeyHex)
+		// Store the private key in the browser's memory
+		js.Global().Call("makePrivKeyInMemory", privKeyHex)
 		// Get the user salt from the database
 		payloadPrecheck := struct {
 			Username string `json:"username"`
@@ -199,10 +201,12 @@ func getImageURL(this js.Value, args []js.Value) interface{} {
 	go func() {
 		token := args[0].String()
 		choice := args[1].String()
-		log.Printf("Token: %s\n", token)
-		log.Printf("Choice: %s\n", choice)
 		// Get private key from the browser's local storage
-		privKeyHex := js.Global().Get("localStorage").Call("getItem", "privKey").String()
+		// privKeyHex := js.Global().Get("localStorage").Call("getItem", "privKey").String()
+		// Get private key from the browser's memory
+		privKeyHex := js.Global().Call("getPrivKeyFromMemory").String()
+		// Log the private key for debugging purposes (REMOVE THIS LOG IN FUTURE)
+		log.Printf("PrivKeyHex: %s\n", privKeyHex)
 		// Convert the private key hex string to bytes
 		privateKeyBytes, _ := hex.DecodeString(privKeyHex)
 		// Convert the private key bytes to an ECDSA private key

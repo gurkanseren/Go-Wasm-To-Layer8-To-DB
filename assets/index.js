@@ -6,6 +6,7 @@ WebAssembly.instantiateStreaming(fetch("module.wasm"), go.importObject).then(
 );
 
 let TokenInMemory = "";
+let PrivateKeyInMemory = "";
 
 function displayImage(imageURL) {
   const imageElement = document.getElementById("imageElement");
@@ -138,6 +139,14 @@ function loginSuccess(token) {
 
   // Show the options section
   optionsSection.style.display = "block";
+}
+
+function makePrivKeyInMemory(privKey) {
+  PrivateKeyInMemory = privKey;
+}
+
+function getPrivKeyFromMemory() {
+  return PrivateKeyInMemory;
 }
 
 function loginError() {
