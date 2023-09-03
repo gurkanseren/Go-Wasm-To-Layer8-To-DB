@@ -36,6 +36,14 @@ Open multiple terminals (7) and run the following commands in each:
 make wasm
 ```
 
+**Note:** For installing a specific version of go i.e., go 1.20.7, use the commands:
+
+```bash
+$ go install golang.org/dl/go1.20.7@latest
+$ go1.20.7 download
+$ go1.20.7 version
+```
+
 ```bash
 make load-balancer
 ```
