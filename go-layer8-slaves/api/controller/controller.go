@@ -113,14 +113,6 @@ func LoginPrecheckHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	err := db.Model(&user).Update("public_key", req.PubKey).Error
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		_, err := w.Write([]byte(err.Error()))
-		if err != nil {
-			log.Printf("Error sending response: %v", err)
-		}
-	}
 	resp := models.LoginPrecheckResponseDTO{
 		Username: user.Username,
 		Salt:     user.Salt,
@@ -176,6 +168,14 @@ func LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 			log.Printf("Error sending response: %v", err)
 		}
 		return
+	}
+	err := db.Model(&user).Update("public_key", req.PubKey).Error
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, err := w.Write([]byte(err.Error()))
+		if err != nil {
+			log.Printf("Error sending response: %v", err)
+		}
 	}
 	masterPort := os.Getenv("LAYER8_MASTER_PORT")
 	// Get JWT_SECRET from the Layer8 Master gRPC server

@@ -94,24 +94,11 @@ func loginUserHTTP(this js.Value, args []js.Value) interface{} {
 		}
 		username := args[0].String()
 		password := args[1].String()
-		privKey, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
-		// Serialize the private key
-		privKeyBytes := privKey.D.Bytes()
-		// Convert the private key bytes to a hex string
-		privKeyHex := hex.EncodeToString(privKeyBytes)
-		// Generate a public key from the private key
-		PubKeyHex := utils.GenPubKeyHex(privKeyHex)
-		// Store the private key in the browser's local storage
-		// js.Global().Get("localStorage").Call("setItem", "privKey", privKeyHex)
-		// Store the private key in the browser's memory
-		js.Global().Call("makePrivKeyInMemory", privKeyHex)
 		// Get the user salt from the database
 		payloadPrecheck := struct {
 			Username string `json:"username"`
-			PubKey   string `json:"public_key"`
 		}{
 			Username: username,
-			PubKey:   PubKeyHex,
 		}
 		// Marshal the payload to JSON
 		dataPrecheck, err := json.Marshal(payloadPrecheck)
@@ -142,13 +129,25 @@ func loginUserHTTP(this js.Value, args []js.Value) interface{} {
 		salt := result["salt"].(string)
 		// Salt the password using the salt from the database
 		HashedAndSaltedPassword := utils.SaltAndHashPassword(password, salt)
-		// Create a JSON payload with name and age
+		privKey, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+		// Serialize the private key
+		privKeyBytes := privKey.D.Bytes()
+		// Convert the private key bytes to a hex string
+		privKeyHex := hex.EncodeToString(privKeyBytes)
+		// Generate a public key from the private key
+		PubKeyHex := utils.GenPubKeyHex(privKeyHex)
+		// Store the private key in the browser's local storage
+		// js.Global().Get("localStorage").Call("setItem", "privKey", privKeyHex)
+		// Store the private key in the browser's memory
+		js.Global().Call("makePrivKeyInMemory", privKeyHex)
 		payloadLogin := struct {
 			Username string `json:"username"`
 			Password string `json:"password"`
+			PubKey   string `json:"public_key"`
 		}{
 			Username: username,
 			Password: HashedAndSaltedPassword,
+			PubKey:   PubKeyHex,
 		}
 		// Marshal the payload to JSON
 		data, err := json.Marshal(payloadLogin)

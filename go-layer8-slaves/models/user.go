@@ -17,11 +17,11 @@ type RegisterUserDTO struct {
 type LoginUserDTO struct {
 	Username             string `json:"username"`
 	SaltedHashedPassword string `json:"password"`
+	PubKey               string `json:"public_key"`
 }
 
 type LoginPrecheckDTO struct {
 	Username string `json:"username"`
-	PubKey   string `json:"public_key"`
 }
 
 type LoginPrecheckResponseDTO struct {
