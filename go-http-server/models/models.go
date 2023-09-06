@@ -11,3 +11,11 @@ const ImageURLFour = "https://m.media-amazon.com/images/M/MV5BNDIzMTk4NDYtMjg5OS
 type ImageURLResponse struct {
 	URL string `json:"url"`
 }
+
+type ECDHKeyExchangeRequest struct {
+	PrivKeySlaveD []byte `json:"PrivKeySlaveD"`
+}
+
+type ECDHKeyExchangeOutput struct {
+	PrivKeyServerD []byte `json:"PrivKeyServerD"`
+}
