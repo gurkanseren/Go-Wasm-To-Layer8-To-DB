@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"crypto/elliptic"
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
@@ -379,4 +380,54 @@ func GetContentHandler(w http.ResponseWriter, r *http.Request) {
 		log.Printf("failed to send response: %v", err)
 		return
 	}
+}
+
+func InitializeECDHTunnelHandler(w http.ResponseWriter, r *http.Request) {
+
+	privKeySlave, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	pubKeySlave := privKeySlave.PublicKey
+
+	payload := models.ECDHKeyExchangeRequest{
+		PrivKeySlaveD: privKeySlave.D.Bytes(),
+	}
+
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		log.Printf("failed to marshal payload: %v", err)
+		return
+	}
+	port := os.Getenv("CONTENT_SERVER_PORT")
+	req, err := http.NewRequest("POST", "http://localhost:"+port+"/initialize-ecdh-key-exchange", strings.NewReader(string(payloadBytes)))
+	if err != nil {
+		log.Printf("failed to create request: %v", err)
+		return
+	}
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Printf("failed to send request: %v", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	// Convert the response body to a string
+	RespBodyByte, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("failed to read response body: %v", err)
+		return
+	}
+
+	// Convert RespBodyByte to string
+	RespBodyString := string(RespBodyByte)
+
+	// Unmarshal the response body into the ECDHKeyExchangeOutput object
+	var ecdhKeyExchangeOutput models.ECDHKeyExchangeOutput
+	err = json.Unmarshal([]byte(RespBodyString), &ecdhKeyExchangeOutput)
+	if err != nil {
+		log.Printf("failed to unmarshal response body: %v", err)
+		return
+	}
+	a, _ := pubKeySlave.Curve.ScalarMult(pubKeySlave.X, pubKeySlave.Y, ecdhKeyExchangeOutput.PrivKeyServerD)
+	fmt.Println(a)
 }
