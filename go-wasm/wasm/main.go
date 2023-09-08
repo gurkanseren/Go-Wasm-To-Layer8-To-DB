@@ -188,6 +188,7 @@ func loginUserHTTP(this js.Value, args []js.Value) interface{} {
 		// js.Global().Get("localStorage").Call("setItem", "token", token)
 		// Store the token in the browser's memory
 		js.Global().Call("loginSuccess", token)
+		fmt.Printf("Token: %s\n", token)
 	}()
 	return nil
 }
@@ -268,6 +269,104 @@ func getImageURL(this js.Value, args []js.Value) interface{} {
 	return nil
 }
 
+func initializeECDHTunnel(this js.Value, args []js.Value) interface{} {
+	go func() {
+		token := args[0].String()
+		privKeyHex := js.Global().Call("getPrivKeyFromMemory").String()
+		// Convert the private key hex string to bytes
+		privateKeyBytes, _ := hex.DecodeString(privKeyHex)
+		// Convert the private key bytes to an ECDSA private key
+		privKey := new(ecdsa.PrivateKey)
+		privKey.Curve = elliptic.P256()
+		privKey.D = new(big.Int).SetBytes(privateKeyBytes)
+		privKey.PublicKey.Curve = privKey.Curve
+		privKey.PublicKey.X, privKey.PublicKey.Y = privKey.Curve.ScalarBaseMult(privKey.D.Bytes())
+		// Create a new claims for the additional Token part
+		claims := map[string]interface{}{
+			"WasmSignature": "Signed by Go-WASM Client, Globe&Citizen",
+		}
+		// Serialize the new claims
+		encodedClaims := base64.RawURLEncoding.EncodeToString([]byte(fmt.Sprintf(`{"WasmSignature":"%s"}`, claims["WasmSignature"])))
+		// Hash the data to be signed
+		hash := sha256.Sum256([]byte(encodedClaims))
+		// Compute the ECDSA signature
+		r, s, err := ecdsa.Sign(rand.Reader, privKey, hash[:])
+		if err != nil {
+			fmt.Println("Error signing:", err)
+			return
+		}
+		SignedToken := fmt.Sprintf(".%s.%s", base64.RawURLEncoding.EncodeToString(r.Bytes()), base64.RawURLEncoding.EncodeToString(s.Bytes()))
+		DoubleSignedToken := fmt.Sprintf("%s%s", token, SignedToken)
+
+		privKeyWasm, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+		pubKeyWasmX, pubKeyWasmY := privKeyWasm.PublicKey.Curve.ScalarBaseMult(privKeyWasm.D.Bytes())
+		pubKeyWasm := &ecdsa.PublicKey{
+			Curve: elliptic.P256(),
+			X:     pubKeyWasmX,
+			Y:     pubKeyWasmY,
+		}
+		Payload := struct {
+			Token       string   `json:"token"`
+			PubKeyWasmX *big.Int `json:"pub_key_wasm_x"`
+			PubKeyWasmY *big.Int `json:"pub_key_wasm_y"`
+		}{
+			Token:       DoubleSignedToken,
+			PubKeyWasmX: pubKeyWasm.X,
+			PubKeyWasmY: pubKeyWasm.Y,
+		}
+		// Marshal the payload to JSON
+		data, err := json.Marshal(Payload)
+		if err != nil {
+			fmt.Printf("Error marshaling JSON: %s\n", err)
+			js.Global().Call("loginError")
+			return
+		}
+		// Make a POST request to the server with the JSON payload
+		respChoice, err := http.Post("http://127.0.0.1:8000/api/v1/initialize-ecdh-tunnel", "application/json", strings.NewReader(string(data)))
+		if err != nil {
+			fmt.Printf("POST request failed: %s\n", err)
+			js.Global().Call("loginError")
+			return
+		}
+		defer respChoice.Body.Close()
+		if respChoice.StatusCode == 401 {
+			fmt.Printf("User not authorized\n")
+			js.Global().Call("notAuthorized")
+			return
+		}
+		// Read the response body
+		Respbody := utils.ReadResponseBody(respChoice.Body)
+		// Unmarshal the response body into a map
+		mapData := make(map[string]interface{})
+		err = json.Unmarshal(Respbody, &mapData)
+		if err != nil {
+			fmt.Printf("Error unmarshaling JSON: %s\n", err)
+			js.Global().Call("loginError")
+			return
+		}
+		// Get the server's public key from the map
+		var pubKeyServerX, pubKeyServerY *big.Int
+		pubKeyServerX, ok := mapData["pub_key_server_x"].(*big.Int)
+		if !ok {
+			fmt.Println("Error getting server's public key")
+			return
+		}
+		pubKeyServerY, ok = mapData["pub_key_server_y"].(*big.Int)
+		if !ok {
+			fmt.Println("Error getting server's public key")
+			return
+		}
+		sharedX, sharedY := elliptic.P256().ScalarMult(pubKeyServerX, pubKeyServerY, privKeyWasm.D.Bytes())
+		sharedKeyContentServer := &ecdsa.PublicKey{
+			Curve: elliptic.P256(),
+			X:     sharedX,
+			Y:     sharedY,
+		}
+		fmt.Printf("\nShared key (Content Server) (%x, %x)\n", sharedKeyContentServer.X, sharedKeyContentServer.Y)
+	}()
+	return nil
+}
+
 func main() {
 	fmt.Println("Go Web Assembly Demo")
 	// Register the connectToServer function to the global namespace
@@ -278,6 +377,8 @@ func main() {
 	js.Global().Set("loginUser", js.FuncOf(loginUserHTTP))
 	// Register the getImageUrl function to the global namespace
 	js.Global().Set("getImageURL", js.FuncOf(getImageURL))
+	// Register the initializeECDHTunnel function to the global namespace
+	js.Global().Set("initializeECDHTunnel", js.FuncOf(initializeECDHTunnel))
 	// Keep the program running
 	<-make(chan bool)
 }
