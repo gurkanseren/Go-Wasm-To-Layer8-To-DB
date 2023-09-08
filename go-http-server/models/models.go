@@ -1,5 +1,9 @@
 package models
 
+import (
+	"math/big"
+)
+
 const ImageURLOne = "https://c8.alamy.com/comp/2K3MF4R/300-2006-300-movie-poster-gerard-butler-2K3MF4R.jpg"
 
 const ImageURLTwo = "https://images.moviesanywhere.com/2184f0c69e02ee614a3d9df0d117f675/55e42cb4-4df6-4749-acf9-432094cb239f.jpg"
@@ -13,9 +17,11 @@ type ImageURLResponse struct {
 }
 
 type ECDHKeyExchangeRequest struct {
-	PrivKeySlaveD []byte `json:"PrivKeySlaveD"`
+	PubKeyWasmX *big.Int `json:"pub_key_wasm_x"`
+	PubKeyWasmY *big.Int `json:"pub_key_wasm_y"`
 }
 
 type ECDHKeyExchangeOutput struct {
-	PrivKeyServerD []byte `json:"PrivKeyServerD"`
+	PubKeyServerX *big.Int `json:"pub_key_server_x"`
+	PubKeyServerY *big.Int `json:"pub_key_server_y"`
 }
