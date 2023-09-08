@@ -59,14 +59,25 @@ func InitializeECDHKeyExchange(w http.ResponseWriter, r *http.Request) {
 	}
 
 	privKeyContentServer, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
-	pubKeyContentServer := privKeyContentServer.PublicKey
+	pubKeyContentServerX, pubKeyContentServerY := privKeyContentServer.PublicKey.Curve.ScalarBaseMult(privKeyContentServer.D.Bytes())
+	pubKeyContentServer := &ecdsa.PublicKey{
+		Curve: elliptic.P256(),
+		X:     pubKeyContentServerX,
+		Y:     pubKeyContentServerY,
+	}
+	sharedX, sharedY := elliptic.P256().ScalarMult(ecdhKeyExchangeRequest.PubKeyWasmX, ecdhKeyExchangeRequest.PubKeyWasmY, privKeyContentServer.D.Bytes())
+	sharedKeyContentServer := &ecdsa.PublicKey{
+		Curve: elliptic.P256(),
+		X:     sharedX,
+		Y:     sharedY,
+	}
 
-	b, _ := pubKeyContentServer.Curve.ScalarMult(pubKeyContentServer.X, pubKeyContentServer.Y, ecdhKeyExchangeRequest.PrivKeySlaveD)
-	fmt.Println(b)
+	fmt.Printf("\nShared key (Content Server) (%x, %x)\n", sharedKeyContentServer.X, sharedKeyContentServer.Y)
 
 	// Send back the response object containing the server's private key
 	ecdhKeyExchangeOutput := models.ECDHKeyExchangeOutput{
-		PrivKeyServerD: privKeyContentServer.D.Bytes(),
+		PubKeyServerX: pubKeyContentServer.X,
+		PubKeyServerY: pubKeyContentServer.Y,
 	}
 
 	// Set the appropriate Content-Type header for JSON response
@@ -75,7 +86,7 @@ func InitializeECDHKeyExchange(w http.ResponseWriter, r *http.Request) {
 	// Encode the response object to JSON and write it to the response writer
 	err = json.NewEncoder(w).Encode(ecdhKeyExchangeOutput)
 	if err != nil {
-		http.Error(w, "Error serving image URL", http.StatusInternalServerError)
+		http.Error(w, "Error sending server's public key", http.StatusInternalServerError)
 		return
 	}
 }

@@ -139,6 +139,7 @@ function loginSuccess(token) {
 
   // Show the options section
   optionsSection.style.display = "block";
+
 }
 
 function makePrivKeyInMemory(privKey) {

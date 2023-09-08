@@ -337,26 +337,7 @@ func initializeECDHTunnel(this js.Value, args []js.Value) interface{} {
 		}
 		// Read the response body
 		Respbody := utils.ReadResponseBody(respChoice.Body)
-		// Unmarshal the response body into a map
-		// mapData := make(map[string]interface{})
-		// err = json.Unmarshal(Respbody, &mapData)
-		// if err != nil {
-		// 	fmt.Printf("Error unmarshaling JSON: %s\n", err)
-		// 	js.Global().Call("loginError")
-		// 	return
-		// }
-		// Get the server's public key from the map
-		// var pubKeyServerX, pubKeyServerY *big.Int
-		// pubKeyServerX, ok := mapData["pub_key_server_x"].(*big.Int)
-		// if !ok {
-		// 	fmt.Println("Error getting server's public key")
-		// 	return
-		// }
-		// pubKeyServerY, ok = mapData["pub_key_server_y"].(*big.Int)
-		// if !ok {
-		// 	fmt.Println("Error getting server's public key")
-		// 	return
-		// }
+
 		var pubKeyXY models.ECDHKeyExchangeOutput
 		err = json.Unmarshal(Respbody, &pubKeyXY)
 		if err != nil {
@@ -369,12 +350,12 @@ func initializeECDHTunnel(this js.Value, args []js.Value) interface{} {
 		pubKeyServerY := pubKeyXY.PubKeyServerY
 
 		sharedX, sharedY := elliptic.P256().ScalarMult(pubKeyServerX, pubKeyServerY, privKeyWasm.D.Bytes())
-		sharedKeyContentServer := &ecdsa.PublicKey{
+		sharedKeyWasm := &ecdsa.PublicKey{
 			Curve: elliptic.P256(),
 			X:     sharedX,
 			Y:     sharedY,
 		}
-		fmt.Printf("\nShared key (Content Server) (%x, %x)\n", sharedKeyContentServer.X, sharedKeyContentServer.Y)
+		fmt.Printf("\nShared key (Wasm) (%x, %x)\n", sharedKeyWasm.X, sharedKeyWasm.Y)
 	}()
 	return nil
 }
